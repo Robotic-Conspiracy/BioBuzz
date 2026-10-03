@@ -153,15 +153,12 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         rightIntakeServo.setPower(0);
         windmillServo.setPower(0);
 
-        intake.setDirection(DcMotor.Direction.REVERSE);
-        launcher.setDirection(DcMotor.Direction.REVERSE);
-
         /*
-         * Much like our drivetrain motors, we set directions so intake and windmill work correctly.
+         * Much like our drivetrain motors, we set the right intake servo to reverse so that both
+         * servos work to pull elements into the intake.
          */
-        leftIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightIntakeServo.setDirection(DcMotorSimple.Direction.FORWARD);
-        windmillServo.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
+        windmillServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
         /*
          * Tell the driver that initialization is complete.
@@ -198,16 +195,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * Note, moving the joystick forward on most gamepads results in a negative signal, so
          * we invert it before passing it to the function.
          */
-        double forward = -gamepad1.left_stick_y;
-        double strafe = gamepad1.left_stick_x;
-        double rotate = gamepad1.right_stick_x;
-
-        // Apply a deadzone to prevent accidental strafing when pushing the stick straight forward/backward
-        if (Math.abs(forward) < 0.1) forward = 0;
-        if (Math.abs(strafe) < 0.1) strafe = 0;
-        if (Math.abs(rotate) < 0.1) rotate = 0;
-
-        mecanumDrive(forward, strafe, rotate);
+        mecanumDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
         /*
          * Set the intake power variable to equal the right trigger, minus the left trigger.
@@ -222,11 +210,6 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * create erratic behavior.
          */
         intakePower = gamepad1.right_trigger - gamepad1.left_trigger;
-        if (Math.abs(intakePower) < 0.05) {
-            intakePower = 0.0;
-        }
-        if (intakePower > 1.0) intakePower = 1.0;
-        if (intakePower < -1.0) intakePower = -1.0;
 
         launch();
 
@@ -307,8 +290,6 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         if (gamepad1.right_bumper && launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
             windmillServo.setPower(1);
             intakePower += 0.5;
-            if (intakePower > 1.0) intakePower = 1.0;
-            if (intakePower < -1.0) intakePower = -1.0;
         } else {
             windmillServo.setPower(0);
         }
