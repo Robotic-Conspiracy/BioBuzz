@@ -229,7 +229,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * Show motor powers on the Driver Station via telemetry.
          */
         telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftFrontPower, rightFrontPower);
-        telemetry.addData("Triggers", "left (%.2f, right (%.2f)",gamepad1.left_trigger, gamepad1.right_trigger);
+        telemetry.addData("Triggers", "left (%.2f), right (%.2f)",gamepad1.left_trigger, gamepad1.right_trigger);
+        telemetry.addData("intakePower", "power (%.2f)",intakePower);
     }
 
     /*
@@ -240,9 +241,18 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     }
 
     void mecanumDrive(double forward, double strafe, double rotate) {
-        leftFrontPower = forward + strafe + rotate;
+        if (Math.abs(forward) < 0.1) {
+            forward = 0;
+        }
+        if (Math.abs(strafe) < 0.1) {
+            strafe = 0;
+        }
+        if (Math.abs(rotate) < 0.1) {
+            rotate = 0;
+        }
+        leftFrontPower = forward - strafe + rotate;
         rightFrontPower = forward - strafe - rotate;
-        leftBackPower = forward - strafe + rotate;
+        leftBackPower = forward + strafe + rotate;
         rightBackPower = forward + strafe - rotate;
 
         double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
