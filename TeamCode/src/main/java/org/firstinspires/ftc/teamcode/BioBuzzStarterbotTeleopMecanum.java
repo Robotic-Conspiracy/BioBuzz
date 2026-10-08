@@ -30,7 +30,6 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -237,24 +236,29 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         rightIntakeServo.setPower(intakePower);
 
         /*
-         * Useful telemetry only: launcher spin-up state and intake/feed state.
+         * Plain-language status for drivers and debugging.
          */
         double launcherVel = launcher.getVelocity();
-        telemetry.addData("launcher", "target %d, vel %.0f, ready %s",
-                LAUNCHER_TARGET_VELOCITY, launcherVel,
-                launcherVel > LAUNCHER_MIN_VELOCITY ? "YES" : "spin-up");
+        boolean launcherReady = launcherVel > LAUNCHER_MIN_VELOCITY;
+        String intakeState = intakePower > 0.05 ? "intaking"
+                : (intakePower < -0.05 ? "reversing" : "off");
+        String intakeServoDir = intakePower > 0.05 ? "fwd"
+                : (intakePower < -0.05 ? "rev" : "off");
+        telemetry.addData("Launcher", "%s (goal %d, speed %.0f)",
+                launcherReady ? "READY" : "spinning up",
+                LAUNCHER_TARGET_VELOCITY, launcherVel);
         // Numeric copies so the dashboard Graph view can plot them
         telemetry.addData("launcherVel", launcherVel);
         telemetry.addData("launcherTarget", LAUNCHER_TARGET_VELOCITY);
-        telemetry.addData("launcherAmps", launcher.getCurrent(CurrentUnit.AMPS));
-        telemetry.addData("drive", "LF %.2f RF %.2f LB %.2f RB %.2f",
-                leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
-        // CRServos have no position readback, so this confirms commanded state
-        telemetry.addData("servos", "windmill %.2f L %.2f R %.2f",
-                windmillServo.getPower(), leftIntakeServo.getPower(), rightIntakeServo.getPower());
-        telemetry.addData("intake", "power %.2f, feeding %s",
-                intakePower, gamepad1.right_bumper ? "YES" : "no");
-        telemetry.addData("battery", "%.1f V", voltageSensor.getVoltage());
+        telemetry.addData("Intake", "%s, feeder %s",
+                intakeState, gamepad1.right_bumper ? "ON" : "off");
+        // CRServos can't report position, only commanded power — shown as direction
+        telemetry.addData("Servos", "feeder %s, intakes %s",
+                windmillServo.getPower() > 0.05 ? "ON" : "off", intakeServoDir);
+        telemetry.addData("Drive", "LF %.0f%% RF %.0f%% LB %.0f%% RB %.0f%%",
+                leftFrontPower * 100, rightFrontPower * 100,
+                leftBackPower * 100, rightBackPower * 100);
+        telemetry.addData("Battery", "%.1f V", voltageSensor.getVoltage());
         telemetry.update();
     }
 
