@@ -24,13 +24,18 @@ package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 /*
  * This file includes a teleop (driver-controlled) file for the goBILDA® StarterBot with Mecanum
@@ -48,6 +53,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
  */
 
 @TeleOp(name = "Mec BioBuzz StarterBot Teleop", group = "StarterBot")
+@Config
 //@Disabled
 public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
@@ -61,6 +67,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private CRServo leftIntakeServo = null;
     private CRServo rightIntakeServo = null;
     private CRServo windmillServo = null;
+    private VoltageSensor voltageSensor = null;
 
 
     /*
@@ -73,7 +80,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      * in the launch() function to only run the windmill servo when the motor is spinning fast
      * enough to make a successful throw.
      */
-    public final int LAUNCHER_TARGET_VELOCITY = 1500; //2678 RPM*2
+    public static int LAUNCHER_TARGET_VELOCITY = 1350; //2678 RPM*2
     public final int LAUNCHER_MIN_VELOCITY = 1200; //2571 RPM
 
 
@@ -96,6 +103,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     @Override
     public void init() {
 
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         /*
          * Initialize the hardware variables. Note that the strings used here as parameters
          * to 'get' must correspond to the names assigned during the robot configuration
@@ -108,6 +116,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         windmillServo = hardwareMap.get(CRServo.class, "windmillServo");
+        voltageSensor = hardwareMap.voltageSensor.iterator().next();
         leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
         rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
 
@@ -226,11 +235,25 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         rightIntakeServo.setPower(intakePower);
 
         /*
-         * Show motor powers on the Driver Station via telemetry.
+         * Useful telemetry only: launcher spin-up state and intake/feed state.
          */
-        telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftFrontPower, rightFrontPower);
-        telemetry.addData("Triggers", "left (%.2f), right (%.2f)",gamepad1.left_trigger, gamepad1.right_trigger);
-        telemetry.addData("intakePower", "power (%.2f)",intakePower);
+        double launcherVel = launcher.getVelocity();
+        telemetry.addData("launcher", "target %d, vel %.0f, ready %s",
+                LAUNCHER_TARGET_VELOCITY, launcherVel,
+                launcherVel > LAUNCHER_MIN_VELOCITY ? "YES" : "spin-up");
+        // Numeric copies so the dashboard Graph view can plot them
+        telemetry.addData("launcherVel", launcherVel);
+        telemetry.addData("launcherTarget", LAUNCHER_TARGET_VELOCITY);
+        telemetry.addData("launcherAmps", launcher.getCurrent(CurrentUnit.AMPS));
+        telemetry.addData("drive", "LF %.2f RF %.2f LB %.2f RB %.2f",
+                leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
+        // CRServos have no position readback, so this confirms commanded state
+        telemetry.addData("servos", "windmill %.2f L %.2f R %.2f",
+                windmillServo.getPower(), leftIntakeServo.getPower(), rightIntakeServo.getPower());
+        telemetry.addData("intake", "power %.2f, feeding %s",
+                intakePower, gamepad1.right_bumper ? "YES" : "no");
+        telemetry.addData("battery", "%.1f V", voltageSensor.getVoltage());
+        telemetry.update();
     }
 
     /*
