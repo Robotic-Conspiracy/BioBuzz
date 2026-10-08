@@ -82,6 +82,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      */
     public static int LAUNCHER_TARGET_VELOCITY = 1350; //2678 RPM*2
     public final int LAUNCHER_MIN_VELOCITY = 1200; //2571 RPM
+    // Overall drive speed cap, 1.0 = full speed. Tune live from the dashboard.
+    public static double DRIVE_POWER_SCALE = 1.0;
 
 
     /*
@@ -290,12 +292,12 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         }
 
         /*
-         * Send calculated power to wheels
+         * Send calculated power to wheels, scaled by the dashboard-tunable cap
          */
-        leftFrontDrive.setPower(leftFrontPower);
-        rightFrontDrive.setPower(rightFrontPower);
-        leftBackDrive.setPower(leftBackPower);
-        rightBackDrive.setPower(rightBackPower);
+        leftFrontDrive.setPower(leftFrontPower * DRIVE_POWER_SCALE);
+        rightFrontDrive.setPower(rightFrontPower * DRIVE_POWER_SCALE);
+        leftBackDrive.setPower(leftBackPower * DRIVE_POWER_SCALE);
+        rightBackDrive.setPower(rightBackPower * DRIVE_POWER_SCALE);
     }
 
     void launch() {
