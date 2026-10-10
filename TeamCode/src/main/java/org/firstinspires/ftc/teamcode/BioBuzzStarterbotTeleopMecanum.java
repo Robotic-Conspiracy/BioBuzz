@@ -255,10 +255,11 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         // CRServos can't report position, only commanded power — shown as direction
         telemetry.addData("Servos", "feeder %s, intakes %s",
                 windmillServo.getPower() > 0.05 ? "ON" : "off", intakeServoDir);
-        telemetry.addData("Drive", "LF %.0f%% RF %.0f%% LB %.0f%% RB %.0f%%",
+        telemetry.addData("Drive", "LF %.0f%% RF %.0f%% LB %.0f%% RB %.0f%% @ %.0f%%",
                 leftFrontPower * 100, rightFrontPower * 100,
-                leftBackPower * 100, rightBackPower * 100);
-        telemetry.addData("Battery", "%.1f V", voltageSensor.getVoltage());
+                leftBackPower * 100, rightBackPower * 100,
+                DRIVE_POWER_SCALE * 100);
+        telemetry.addData("batteryV", voltageSensor.getVoltage());
         telemetry.update();
     }
 
