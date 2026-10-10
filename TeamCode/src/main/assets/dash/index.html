@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a0a0c" />
+    <meta name="description" content="Robotic Conspiracy #28139 robot telemetry dashboard" />
+    <link rel="icon" type="image/jpeg" href="/dash/crow.jpg" />
+    <title>Robotic Conspiracy #28139</title>
+    <script>try{if(!("isDarkMode"in localStorage))localStorage.setItem("isDarkMode","light")}catch(e){}</script>
+    <script type="module" crossorigin src="/dash/assets/index.d304de0d.js"></script>
+    <link rel="stylesheet" href="/dash/assets/index.e4f652a7.css">
+    <style>
+      /* Robotic Conspiracy team theme. Display-only overrides; no logic touched. */
+      :root {
+        --rc-accent: #0071e3;
+        --rc-hairline: rgba(0, 0, 0, 0.09);
+      }
+      html.dark {
+        --rc-accent: #0a84ff;
+        --rc-hairline: rgba(255, 255, 255, 0.1);
+      }
+
+      @font-face {
+        font-family: 'RC Grotesk';
+        src: url(/dash/assets/fonts/sg-latin.woff2) format('woff2');
+        font-weight: 400 700;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'RC Mono';
+        src: url(/dash/assets/fonts/jbmono-latin.woff2) format('woff2');
+        font-weight: 400 600;
+        font-display: swap;
+      }
+
+      body {
+        font-family: 'RC Grotesk', -apple-system, 'Segoe UI', system-ui, sans-serif;
+        font-variant-numeric: tabular-nums;
+        -webkit-font-smoothing: antialiased;
+      }
+      select, input, button {
+        font-family: inherit;
+      }
+      input, select {
+        font-family: 'RC Mono', ui-monospace, SFMono-Regular, monospace;
+      }
+
+      /* Page surfaces: quiet Apple grays */
+      .relative.overflow-x-hidden.overflow-y-scroll {
+        background: #f5f5f7;
+      }
+      html.dark .relative.overflow-x-hidden.overflow-y-scroll {
+        background: #08080a;
+      }
+
+      /* Header: slim branded bar, frosted on scroll */
+      header.flex {
+        background: rgba(10, 10, 12, 0.92);
+        -webkit-backdrop-filter: saturate(1.6) blur(14px);
+        backdrop-filter: saturate(1.6) blur(14px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        min-height: 52px;
+      }
+      header h1.text-2xl {
+        font-size: 1.15rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #fafafa;
+        white-space: nowrap;
+      }
+      header h1.text-2xl::before {
+        content: "";
+        display: inline-block;
+        width: 1.3em;
+        height: 1.3em;
+        margin-right: 0.5em;
+        vertical-align: -0.22em;
+        background: url(/dash/crow.jpg) no-repeat center / contain;
+      }
+      header h1.text-2xl::after {
+        content: "28139";
+        font-family: 'RC Mono', ui-monospace, monospace;
+        font-size: 0.55em;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: #fafafa;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 999px;
+        padding: 0.2em 0.65em;
+        margin-left: 0.7em;
+        vertical-align: 0.22em;
+      }
+      header select {
+        border-radius: 8px;
+      }
+
+      /* View cards: grouped, soft, hairline-separated */
+      .react-grid-item {
+        border-radius: 14px;
+        border: 1px solid var(--rc-hairline);
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+      }
+      html.dark .react-grid-item {
+        background: #101014;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Sidebar section labels: quiet caps */
+      .option-header {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        opacity: 0.55;
+      }
+
+      /* Icon buttons: rounder, tactile */
+      .icon-btn {
+        border-radius: 9px;
+        transition: background 0.18s ease, transform 0.12s ease;
+      }
+      button:active, .icon-btn:active {
+        transform: scale(0.95);
+      }
+      :focus-visible {
+        outline: 2px solid var(--rc-accent);
+        outline-offset: 2px;
+      }
+      input[type="checkbox"], input[type="radio"] {
+        accent-color: var(--rc-accent);
+      }
+
+      ::selection {
+        background: rgba(10, 132, 255, 0.28);
+      }
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: #8e8e93 transparent;
+      }
+
+      @media (max-width: 640px) {
+        header h1.text-2xl::after {
+          display: none;
+        }
+        header h1.text-2xl {
+          font-size: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    
+  </body>
+</html>
