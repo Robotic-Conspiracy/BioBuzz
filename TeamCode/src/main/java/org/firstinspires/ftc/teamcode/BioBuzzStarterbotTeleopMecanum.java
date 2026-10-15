@@ -32,7 +32,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
@@ -84,17 +83,20 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     // Overall drive speed cap, 1.0 = full speed. Tune live from the dashboard.
     public static double DRIVE_POWER_SCALE = 1.0;
 
-    // Windmill continuous servo 90-degree increment tuning and state
+    // Windmill continuous servo 180-degree increment tuning and state
     public static double WINDMILL_POWER = 1.0;
-    public static long WINDMILL_90_DEG_MS = 250; // Milliseconds for 90-degree rotation
+    public static long WINDMILL_180_DEG_MS = 500; // Milliseconds for 180-degree rotation at nominal voltage (12.5V)
+    public static double NOMINAL_VOLTAGE = 12.5;  // Benchmark battery voltage for automatic time compensation
+    public static long WINDMILL_PAUSE_MS = 100;   // Milliseconds pause between continuous 180° increments
     private boolean windmillIsRotating = false;
+    private boolean windmillIsPausing = false;
     private long windmillStartTime = 0;
 
 
     /*
      * These four variables store the power we need to apply to the motors. In other cases, we may
      * choose to declare these variables inside the mecanumDrive() function, instead we declare them
-     * here so that we can access them in our main loop for telemetry.
+     * here so that we can access them in our main loop  for telemetry.
      */
     double leftFrontPower;
     double rightFrontPower;
@@ -169,10 +171,11 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         rightIntakeServo.setPower(0);
         windmillServo.setPower(0);
 
-        // Align windmill servo to 90 degrees at initialization
+        // Align windmill servo to 180 degrees at initialization (voltage compensated)
+        long initRotationMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
         windmillServo.setPower(WINDMILL_POWER);
         try {
-            Thread.sleep(WINDMILL_90_DEG_MS);
+            Thread.sleep(initRotationMs);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -272,7 +275,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
                 intakeState, gamepad1.right_bumper ? "ON" : "off");
         // CRServos can't report position, only commanded power — shown as direction / state
         telemetry.addData("Servos", "feeder %s, intakes %s",
-                windmillIsRotating ? "rotating 90°" : (windmillServo.getPower() > 0.05 ? "ON" : "off"), intakeServoDir);
+                windmillIsRotating ? "rotating 180°" : (windmillIsPausing ? "pausing" : "off"), intakeServoDir);
         telemetry.addData("Drive", "LF %.0f%% RF %.0f%% LB %.0f%% RB %.0f%% @ %.0f%%",
                 leftFrontPower * 100, rightFrontPower * 100,
                 leftBackPower * 100, rightBackPower * 100,
@@ -334,12 +337,23 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          */
         launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
         /*
-         * Here we move the windmill continuous servo in 90-degree increments continuously.
+         * Moves the windmill continuous servo in 180-degree increments continuously while held.
+         * Dynamically adjusts turn duration based on battery voltage to maintain consistent 180° rotation.
+         * Whenever triggered, it completes a full 180° rotation before stopping or pausing.
          */
-        if (windmillIsRotating) {
-            if (System.currentTimeMillis() - windmillStartTime >= WINDMILL_90_DEG_MS) {
+        if (windmillIsRotating) {w
+            long targetMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
+            if (System.currentTimeMillis() - windmillStartTime >= targetMs) {
                 windmillServo.setPower(0);
                 windmillIsRotating = false;
+                if (WINDMILL_PAUSE_MS > 0) {
+                    windmillIsPausing = true;
+                    windmillStartTime = System.currentTimeMillis();
+                }
+            }
+        } else if (windmillIsPausing) {
+            if (System.currentTimeMillis() - windmillStartTime >= WINDMILL_PAUSE_MS) {
+                windmillIsPausing = false;
             }
         } else {
             if (gamepad1.right_bumper) { // && launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
@@ -350,5 +364,21 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
                 windmillServo.setPower(0);
             }
         }
+    }
+
+    /**
+     * Dynamically adjusts continuous servo rotation time based on current battery voltage.
+     * Higher battery voltage -> servo spins faster -> shorter time needed.
+     * Lower battery voltage -> servo spins slower -> longer time needed.
+     */
+    private long getAdjustedRotationMs(long baseMs) {
+        if (voltageSensor == null) {
+            return baseMs;
+        }
+        double currentVoltage = voltageSensor.getVoltage();
+        if (currentVoltage < 8.0) {
+            return baseMs;
+        }
+        return Math.round(baseMs * (NOMINAL_VOLTAGE / currentVoltage));
     }
 }
