@@ -15,12 +15,13 @@ apply plugin: 'com.android.application'
 buildscript {
     repositories {
         mavenCentral()
+        google()
         maven {
             url "https://repo.dairy.foundation/releases"
         }
     }
     dependencies {
-        classpath "dev.frozenmilk:Load:0.2.4"
+        classpath "dev.frozenmilk:Load:0.3.2"
     }
 }
 
@@ -48,14 +49,16 @@ repositories {
 
 dependencies {
     implementation "com.acmerobotics.roadrunner:core:1.0.1"
-    implementation("com.acmerobotics.slothboard:dashboard:0.2.4+0.4.17")
+    implementation("com.acmerobotics.slothboard:dashboard:0.3.2+0.6.0")
+    implementation("dev.frozenmilk.sinister:Sloth:0.3.2")
     implementation("com.acmerobotics.roadrunner:ftc:0.1.25") {
         exclude group: "com.acmerobotics.dashboard"
     }
     implementation ("com.acmerobotics.roadrunner:actions:1.0.1"){
         exclude group: "com.acmerobotics.dashboard"
     }
-    implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
+    implementation("dev.frozenmilk.sinister:Sloth:0.3.2")
+    implementation("com.bylazar.sloth:fullpanels:0.3.2+1.0.13")
 
     implementation project(':FtcRobotController')
 
