@@ -341,7 +341,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * Dynamically adjusts turn duration based on battery voltage to maintain consistent 180° rotation.
          * Whenever triggered, it completes a full 180° rotation before stopping or pausing.
          */
-        if (windmillIsRotating) {w
+        if (windmillIsRotating) {
             long targetMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
             if (System.currentTimeMillis() - windmillStartTime >= targetMs) {
                 windmillServo.setPower(0);
