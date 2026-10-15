@@ -84,6 +84,12 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     // Overall drive speed cap, 1.0 = full speed. Tune live from the dashboard.
     public static double DRIVE_POWER_SCALE = 1.0;
 
+    // Windmill continuous servo 90-degree increment tuning and state
+    public static double WINDMILL_POWER = 1.0;
+    public static long WINDMILL_90_DEG_MS = 250; // Milliseconds for 90-degree rotation
+    private boolean windmillIsRotating = false;
+    private long windmillStartTime = 0;
+
 
     /*
      * These four variables store the power we need to apply to the motors. In other cases, we may
@@ -161,6 +167,15 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          */
         leftIntakeServo.setPower(0);
         rightIntakeServo.setPower(0);
+        windmillServo.setPower(0);
+
+        // Align windmill servo to 90 degrees at initialization
+        windmillServo.setPower(WINDMILL_POWER);
+        try {
+            Thread.sleep(WINDMILL_90_DEG_MS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         windmillServo.setPower(0);
 
         /*
@@ -252,9 +267,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         telemetry.addData("launcherTarget", LAUNCHER_TARGET_VELOCITY);
         telemetry.addData("Intake", "%s, feeder %s",
                 intakeState, gamepad1.right_bumper ? "ON" : "off");
-        // CRServos can't report position, only commanded power — shown as direction
+        // CRServos can't report position, only commanded power — shown as direction / state
         telemetry.addData("Servos", "feeder %s, intakes %s",
-                windmillServo.getPower() > 0.05 ? "ON" : "off", intakeServoDir);
+                windmillIsRotating ? "rotating 90°" : (windmillServo.getPower() > 0.05 ? "ON" : "off"), intakeServoDir);
         telemetry.addData("Drive", "LF %.0f%% RF %.0f%% LB %.0f%% RB %.0f%% @ %.0f%%",
                 leftFrontPower * 100, rightFrontPower * 100,
                 leftBackPower * 100, rightBackPower * 100,
@@ -316,16 +331,21 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          */
         launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
         /*
-         * Here we ask if the driver is currently pressing the right bumper, AND the launcher is
-         * spinning fast enough to make a successful shot. If it is, then we will turn on the
-         * windmill servo to start feeding the elements into the launcher motor. We also
-         * add some power to the intake power. This can sometimes help dislodge stuck elements from
-         * inside the hopper.
+         * Here we move the windmill continuous servo in 90-degree increments continuously.
          */
-        if (gamepad1.right_bumper) { // && launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
-            windmillServo.setPower(1);
+        if (windmillIsRotating) {
+            if (System.currentTimeMillis() - windmillStartTime >= WINDMILL_90_DEG_MS) {
+                windmillServo.setPower(0);
+                windmillIsRotating = false;
+            }
         } else {
-            windmillServo.setPower(0);
+            if (gamepad1.right_bumper) { // && launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
+                windmillIsRotating = true;
+                windmillStartTime = System.currentTimeMillis();
+                windmillServo.setPower(WINDMILL_POWER);
+            } else {
+                windmillServo.setPower(0);
+            }
         }
     }
 }
