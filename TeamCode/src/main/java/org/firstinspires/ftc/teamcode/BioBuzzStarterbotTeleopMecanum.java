@@ -208,6 +208,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     /*
      * Code to run REPEATEDLY after the driver hits START but before they hit STOP
      */
+    //TODO: make left bumper reverse the servo
+    //TODO: reduce drive speed
+    //TODO: map b to speed boost
     @Override
     public void loop() {
         /*
