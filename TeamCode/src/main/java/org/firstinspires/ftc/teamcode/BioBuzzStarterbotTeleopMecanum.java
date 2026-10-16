@@ -360,6 +360,10 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
                 windmillIsRotating = true;
                 windmillStartTime = System.currentTimeMillis();
                 windmillServo.setPower(WINDMILL_POWER);
+            } else if (gamepad1.left_bumper){
+                windmillIsRotating = true;
+                windmillStartTime = System.currentTimeMillis();
+                windmillServo.setPower(-WINDMILL_POWER);
             } else {
                 windmillServo.setPower(0);
             }
