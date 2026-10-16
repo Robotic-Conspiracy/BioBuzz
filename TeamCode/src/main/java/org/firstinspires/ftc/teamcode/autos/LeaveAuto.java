@@ -46,6 +46,8 @@ public class LeaveAuto extends OpMode {
         RunTime = (System.currentTimeMillis() / 1000.0f) - StartTime;
         if(RunTime < DriveTime){
             mecanumDrive(-1, 0, 0);
+        } else {
+            mecanumDrive(0, 0, 0);
         }
     }
 
