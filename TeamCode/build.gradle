@@ -21,7 +21,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "dev.frozenmilk:Load:0.3.2"
+        classpath "dev.frozenmilk:Load:0.2.4"
     }
 }
 
@@ -57,7 +57,7 @@ dependencies {
         exclude group: "com.acmerobotics.dashboard"
     }
 
-    implementation("dev.frozenmilk.sinister:Sloth:0.3.2")
+    implementation("dev.frozenmilk.sinister:Sloth:0.2.4")
 
 
 
