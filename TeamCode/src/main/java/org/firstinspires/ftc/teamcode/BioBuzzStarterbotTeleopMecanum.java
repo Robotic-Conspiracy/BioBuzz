@@ -81,7 +81,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     public static int LAUNCHER_TARGET_VELOCITY = 1350; //2678 RPM*2
     public final int LAUNCHER_MIN_VELOCITY = 1200; //2571 RPM
     // Overall drive speed cap, 1.0 = full speed. Tune live from the dashboard.
-    public static double DRIVE_POWER_SCALE = 0.8;
+    public static double DRIVE_POWER_SCALE = 0.9;
 
     // Windmill continuous servo 180-degree increment tuning and state
     public static double WINDMILL_POWER = 1.0;
@@ -140,6 +140,10 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+
+        // The intake motor is wired opposite its servos, so flip the motor only.
+        // Positive intake power (right trigger) pulls game elements in.
+        intake.setDirection(DcMotor.Direction.REVERSE);
 
         /*
          * Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to
