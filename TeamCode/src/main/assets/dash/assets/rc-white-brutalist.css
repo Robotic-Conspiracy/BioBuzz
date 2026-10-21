@@ -1,0 +1,206 @@
+/* Robotic Conspiracy #28139 - white brutalist dashboard theme.
+   Display-only overrides layered after index.e4f652a7.css and the inline
+   theme block. No dashboard logic touched. Force light, stark, hard-edged. */
+
+:root {
+  --rc-ink: #000000;
+  --rc-paper: #ffffff;
+  --rc-accent: #0047ff;
+  --rc-border: 2px solid #000000;
+  --rc-shadow: 4px 4px 0 #000000;
+  color-scheme: light;
+}
+
+html, html.dark {
+  background: #ffffff;
+  color-scheme: light;
+}
+
+body {
+  background: #ffffff;
+  color: #000000;
+  font-family: 'RC Grotesk', -apple-system, 'Segoe UI', system-ui, sans-serif;
+}
+
+input, select {
+  font-family: 'RC Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Page surface: flat white */
+.relative.overflow-x-hidden.overflow-y-scroll,
+html.dark .relative.overflow-x-hidden.overflow-y-scroll {
+  background: #ffffff;
+}
+
+/* Header: solid white slab, thick black rule, no blur */
+header.flex,
+html.dark header.flex {
+  background: #ffffff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-bottom: 3px solid #000000;
+  min-height: 56px;
+}
+header h1.text-2xl,
+html.dark header h1.text-2xl {
+  font-family: 'RC Mono', ui-monospace, monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #000000;
+  white-space: nowrap;
+}
+header h1.text-2xl::after,
+html.dark header h1.text-2xl::after {
+  content: "28139";
+  font-family: 'RC Mono', ui-monospace, monospace;
+  font-size: 0.55em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #ffffff;
+  background: #000000;
+  border: 2px solid #000000;
+  border-radius: 0;
+  padding: 0.25em 0.6em;
+  margin-left: 0.7em;
+  vertical-align: 0.22em;
+}
+
+/* Cards: white panels, hard black border + offset shadow, square corners */
+.react-grid-item,
+html.dark .react-grid-item {
+  border-radius: 0;
+  border: var(--rc-border);
+  background: #ffffff;
+  box-shadow: var(--rc-shadow);
+}
+
+/* Card/widget headers if present */
+.react-grid-item h1, .react-grid-item h2, .react-grid-item h3,
+html.dark .react-grid-item h1, html.dark .react-grid-item h2, html.dark .react-grid-item h3 {
+  font-family: 'RC Mono', ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #000000;
+}
+
+/* Sidebar section labels: heavy black caps */
+.option-header,
+html.dark .option-header {
+  font-family: 'RC Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #000000;
+  opacity: 1;
+  border-bottom: 2px solid #000000;
+  padding-bottom: 2px;
+}
+
+/* Buttons, selects, inputs: square, hard-bordered, invert on interaction */
+button, .icon-btn, select, input, header select,
+html.dark button, html.dark .icon-btn, html.dark select, html.dark input {
+  border-radius: 0;
+}
+select, input[type="text"], input[type="number"],
+html.dark select, html.dark input[type="text"], html.dark input[type="number"] {
+  background: #ffffff;
+  color: #000000;
+  border: var(--rc-border);
+  box-shadow: none;
+}
+button:hover, .icon-btn:hover {
+  background: #000000;
+  color: #ffffff;
+}
+button:active, .icon-btn:active {
+  transform: none;
+  box-shadow: none;
+  translate: 2px 2px;
+}
+
+/* Focus + form accents: hard accent, no soft ring */
+:focus-visible {
+  outline: 3px solid var(--rc-accent);
+  outline-offset: 0;
+}
+input[type="checkbox"], input[type="radio"] {
+  accent-color: #000000;
+}
+
+/* Selection + scrollbars: stark */
+::selection {
+  background: #000000;
+  color: #ffffff;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #000000 #ffffff;
+}
+
+@media (max-width: 640px) {
+  header h1.text-2xl::after { display: none; }
+  header h1.text-2xl { font-size: 0.95rem; }
+}
+
+/* Widget cards are inner Tailwind divs (border border-gray-100), not the
+   grid item itself. Frame them hard; grid item keeps the offset shadow. */
+.border.border-gray-100,
+html.dark .border.border-gray-100,
+.dark .border.border-gray-100 {
+  border: 2px solid #000000;
+  border-radius: 0;
+  background: #ffffff;
+  box-shadow: 4px 4px 0 #000000;
+}
+
+/* Widget title bars: black rule + mono caps */
+.mb-1.border-b.border-gray-100,
+html.dark .mb-1.border-b.border-gray-100 {
+  border-bottom: 2px solid #000000;
+  font-family: 'RC Mono', ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Control states stay loud: default framed, hover inverts, disabled greys
+   out but keeps its frame, focus gets the accent outline, errors stay red. */
+button,
+html.dark button {
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+}
+button:hover:not(:disabled),
+html.dark button:hover:not(:disabled) {
+  background: #000000;
+  color: #ffffff;
+}
+button:disabled,
+html.dark button:disabled {
+  border-color: #777777;
+  color: #777777;
+  background: #eeeeee;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+header.flex select,
+html.dark header.flex select {
+  border: 2px solid #000000;
+  border-radius: 0;
+  background: #ffffff;
+  color: #000000;
+}
+
+/* Neutralize the older inline theme's clipping/stacking overrides too:
+   card popups must not clip, header must not cover controls. */
+.react-grid-item,
+html.dark .react-grid-item {
+  overflow: visible;
+}
+header.flex,
+html.dark header.flex {
+  position: static;
+}
