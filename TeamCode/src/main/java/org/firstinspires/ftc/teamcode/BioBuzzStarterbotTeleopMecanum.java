@@ -24,10 +24,14 @@ package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.config.ValueProvider;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import org.firstinspires.ftc.ftccommon.external.OnCreate;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -51,7 +55,6 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
  */
 
 @TeleOp(name = "Mec BioBuzz StarterBot Teleop", group = "StarterBot")
-@Config
 //@Disabled
 public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
@@ -78,16 +81,30 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      * going to gate the windmill until the launcher is up to speed, but that check is off
      * right now.
      */
-    public static int LAUNCHER_TARGET_VELOCITY = 1350; //2678 RPM*2
+    // code defaults for the dashboard tuning, so we can tell a fresh default from a dashboard edit
+    private static final double DEF_DRIVE_POWER_SCALE = 1.0;
+    private static final double DEF_DRIVE_DEADZONE = 0.1;
+    private static final int DEF_LAUNCHER_TARGET_VELOCITY = 1225;
+    private static final double DEF_WINDMILL_POWER = 1.0;
+    private static final long DEF_WINDMILL_180_DEG_MS = 500;
+    private static final double DEF_NOMINAL_VOLTAGE = 12.5;
+    private static final long DEF_WINDMILL_PAUSE_MS = 100;
+
+    public static int LAUNCHER_TARGET_VELOCITY = DEF_LAUNCHER_TARGET_VELOCITY; // ~2625 RPM
     public final int LAUNCHER_MIN_VELOCITY = 1200; //2571 RPM
     // Overall drive speed cap, 1.0 = full speed. Tune live from the dashboard.
-    public static double DRIVE_POWER_SCALE = 0.9;
+    public static double DRIVE_POWER_SCALE = DEF_DRIVE_POWER_SCALE;
+
+    // deadzone for the drive sticks, tunable in the dashboard. stick movement smaller
+    // than this counts as zero. 0.1 is a normal value, not too much.
+    public static double DRIVE_DEADZONE = DEF_DRIVE_DEADZONE;
 
     // Windmill continuous servo 180-degree increment tuning and state
-    public static double WINDMILL_POWER = 1.0;
-    public static long WINDMILL_180_DEG_MS = 500; // Milliseconds for 180-degree rotation at nominal voltage (12.5V)
-    public static double NOMINAL_VOLTAGE = 12.5;  // Benchmark battery voltage for automatic time compensation
-    public static long WINDMILL_PAUSE_MS = 100;   // Milliseconds pause between continuous 180° increments
+    public static double WINDMILL_POWER = DEF_WINDMILL_POWER;
+    public static long WINDMILL_180_DEG_MS = DEF_WINDMILL_180_DEG_MS; // Milliseconds for 180-degree rotation at nominal voltage (12.5V)
+    public static double NOMINAL_VOLTAGE = DEF_NOMINAL_VOLTAGE;  // Benchmark battery voltage for automatic time compensation
+    public static long WINDMILL_PAUSE_MS = DEF_WINDMILL_PAUSE_MS;   // Milliseconds pause between continuous 180° increments
+
     private boolean windmillIsRotating = false;
     private boolean windmillIsPausing = false;
     private long windmillStartTime = 0;
@@ -106,11 +123,12 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     // Create a variable to set to the intake.
     double intakePower;
 
-    // dpad drive toggles. both off is normal driving.
-    boolean driveInverted = false;      // dpad up: drive stays inverted
-    boolean intakeInvertsDrive = false; // dpad down: drive inverts while the intake runs
+    // dpad drive modes: 0 = normal, 1 = always inverted, 2 = inverted while the intake runs.
+    // one single value, so two modes can never be on at the same time.
+    int driveMode = 0;
     boolean dpadUpWasPressed = false;
     boolean dpadDownWasPressed = false;
+    SharedPreferences prefs;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -118,9 +136,15 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     @Override
     public void init() {
 
-        // drive-inversion toggles always start off
-        driveInverted = false;
-        intakeInvertsDrive = false;
+        // bring back the drive mode from last time. anything weird in storage means normal.
+        prefs = hardwareMap.appContext.getSharedPreferences("biobuzz", Context.MODE_PRIVATE);
+        int savedMode;
+        try {
+            savedMode = prefs.getInt("driveMode", 0);
+        } catch (ClassCastException e) {
+            savedMode = 0;
+        }
+        driveMode = (savedMode == 1 || savedMode == 2) ? savedMode : 0;
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         /*
@@ -247,10 +271,12 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         boolean downPressed = gamepad1.dpad_down && !dpadDownWasPressed;
         dpadUpWasPressed = gamepad1.dpad_up;
         dpadDownWasPressed = gamepad1.dpad_down;
-        if (upPressed && !downPressed && !intakeInvertsDrive) {
-            driveInverted = !driveInverted;
-        } else if (downPressed && !upPressed && !driveInverted) {
-            intakeInvertsDrive = !intakeInvertsDrive;
+        if (upPressed && !downPressed) {
+            if (driveMode == 1) setDriveMode(0);      // own button turns it off
+            else if (driveMode == 0) setDriveMode(1); // only turns on from normal
+        } else if (downPressed && !upPressed) {
+            if (driveMode == 2) setDriveMode(0);      // own button turns it off
+            else if (driveMode == 0) setDriveMode(2); // only turns on from normal
         }
 
         double forward = -gamepad1.left_stick_y;
@@ -259,7 +285,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         // the intake counts as active when the triggers actually command it (both pulled cancels out)
         boolean intakeActive = Math.abs(gamepad1.right_trigger - gamepad1.left_trigger) > 0.05;
-        boolean driveFlipped = driveInverted || (intakeInvertsDrive && intakeActive);
+        boolean driveFlipped = (driveMode == 1) || (driveMode == 2 && intakeActive);
         if (driveFlipped) {
             forward = -forward;
             strafe = -strafe;
@@ -320,8 +346,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
                 leftBackPower * 100, rightBackPower * 100,
                 DRIVE_POWER_SCALE * 100);
         telemetry.addData("Drive modes", "inverted %s, intake-invert %s%s",
-                driveInverted ? "ON" : "off",
-                intakeInvertsDrive ? "ON" : "off",
+                driveMode == 1 ? "ON" : "off",
+                driveMode == 2 ? "ON" : "off",
                 driveFlipped ? " (flipped now)" : "");
         telemetry.addData("batteryV", voltageSensor.getVoltage());
         telemetry.update();
@@ -334,14 +360,122 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     public void stop() {
     }
 
+    // switch the drive mode and remember it for next time
+    void setDriveMode(int mode) {
+        driveMode = mode;
+        prefs.edit().putInt("driveMode", mode).apply();
+    }
+
+    /*
+     * Runs every time the robot controller app starts, before any opmode. The dashboard
+     * forgets its tuning when the app restarts, so we bring back the saved values here and
+     * hook up each dashboard config item ourselves. That way every edit on the dashboard
+     * saves right away, even when no opmode is running.
+     */
+    @OnCreate
+    public static void onRobotCreate(Context context) {
+        final SharedPreferences p = context.getSharedPreferences("biobuzz", Context.MODE_PRIVATE);
+        restoreTuning(p);
+        try {
+            FtcDashboard dash = FtcDashboard.getInstance();
+            String cat = BioBuzzStarterbotTeleopMecanum.class.getSimpleName();
+            dash.addConfigVariable(cat, "DRIVE_POWER_SCALE", new ValueProvider<Double>() {
+                @Override public Double get() { return DRIVE_POWER_SCALE; }
+                @Override public void set(Double value) { DRIVE_POWER_SCALE = value; saveTuning(p); }
+            });
+            dash.addConfigVariable(cat, "DRIVE_DEADZONE", new ValueProvider<Double>() {
+                @Override public Double get() { return DRIVE_DEADZONE; }
+                @Override public void set(Double value) { DRIVE_DEADZONE = value; saveTuning(p); }
+            });
+            dash.addConfigVariable(cat, "LAUNCHER_TARGET_VELOCITY", new ValueProvider<Integer>() {
+                @Override public Integer get() { return LAUNCHER_TARGET_VELOCITY; }
+                @Override public void set(Integer value) { LAUNCHER_TARGET_VELOCITY = value; saveTuning(p); }
+            });
+            dash.addConfigVariable(cat, "WINDMILL_POWER", new ValueProvider<Double>() {
+                @Override public Double get() { return WINDMILL_POWER; }
+                @Override public void set(Double value) { WINDMILL_POWER = value; saveTuning(p); }
+            });
+            dash.addConfigVariable(cat, "WINDMILL_180_DEG_MS", new ValueProvider<Long>() {
+                @Override public Long get() { return WINDMILL_180_DEG_MS; }
+                @Override public void set(Long value) { WINDMILL_180_DEG_MS = value; saveTuning(p); }
+            });
+            dash.addConfigVariable(cat, "NOMINAL_VOLTAGE", new ValueProvider<Double>() {
+                @Override public Double get() { return NOMINAL_VOLTAGE; }
+                @Override public void set(Double value) { NOMINAL_VOLTAGE = value; saveTuning(p); }
+            });
+            dash.addConfigVariable(cat, "WINDMILL_PAUSE_MS", new ValueProvider<Long>() {
+                @Override public Long get() { return WINDMILL_PAUSE_MS; }
+                @Override public void set(Long value) { WINDMILL_PAUSE_MS = value; saveTuning(p); }
+            });
+        } catch (Exception e) {
+            // honest failure mode: if this throws, the tuning items DON'T show up on the
+            // dashboard at all this run. The robot still drives with the restored/code
+            // values. Log it loud so it's diagnosable from the RC log.
+            android.util.Log.e("BioBuzz", "dashboard tuning hookup failed - tuning items will not appear", e);
+        }
+    }
+
+    /*
+     * Bring back the saved dashboard tuning. Anything missing or out of range keeps the
+     * code default.
+     */
+    static void restoreTuning(SharedPreferences p) {
+        try {
+            DRIVE_POWER_SCALE = restoreDouble(p, "DRIVE_POWER_SCALE", DEF_DRIVE_POWER_SCALE, 0, 1);
+            DRIVE_DEADZONE = restoreDouble(p, "DRIVE_DEADZONE", DEF_DRIVE_DEADZONE, 0, 0.9);
+            LAUNCHER_TARGET_VELOCITY = restoreInt(p, "LAUNCHER_TARGET_VELOCITY", DEF_LAUNCHER_TARGET_VELOCITY, 1, 6000);
+            WINDMILL_POWER = restoreDouble(p, "WINDMILL_POWER", DEF_WINDMILL_POWER, -1, 1);
+            WINDMILL_180_DEG_MS = restoreLong(p, "WINDMILL_180_DEG_MS", DEF_WINDMILL_180_DEG_MS, 0, 10000);
+            NOMINAL_VOLTAGE = restoreDouble(p, "NOMINAL_VOLTAGE", DEF_NOMINAL_VOLTAGE, 1, 24);
+            WINDMILL_PAUSE_MS = restoreLong(p, "WINDMILL_PAUSE_MS", DEF_WINDMILL_PAUSE_MS, 0, 10000);
+        } catch (ClassCastException e) {
+            // storage was messed with by hand - the code defaults are already in place
+        }
+    }
+
+    static double restoreDouble(SharedPreferences p, String key, double def, double min, double max) {
+        double saved = Double.longBitsToDouble(p.getLong(key, Double.doubleToRawLongBits(def)));
+        if (Double.isNaN(saved) || Double.isInfinite(saved) || saved < min || saved > max) return def;
+        return saved;
+    }
+
+    static int restoreInt(SharedPreferences p, String key, int def, int min, int max) {
+        int saved = p.getInt(key, def);
+        return (saved < min || saved > max) ? def : saved;
+    }
+
+    static long restoreLong(SharedPreferences p, String key, long def, long min, long max) {
+        long saved = p.getLong(key, def);
+        return (saved < min || saved > max) ? def : saved;
+    }
+
+    static void saveTuning(SharedPreferences p) {
+        p.edit()
+                .putLong("DRIVE_POWER_SCALE", Double.doubleToRawLongBits(DRIVE_POWER_SCALE))
+                .putLong("DRIVE_DEADZONE", Double.doubleToRawLongBits(DRIVE_DEADZONE))
+                .putInt("LAUNCHER_TARGET_VELOCITY", LAUNCHER_TARGET_VELOCITY)
+                .putLong("WINDMILL_POWER", Double.doubleToRawLongBits(WINDMILL_POWER))
+                .putLong("WINDMILL_180_DEG_MS", WINDMILL_180_DEG_MS)
+                .putLong("NOMINAL_VOLTAGE", Double.doubleToRawLongBits(NOMINAL_VOLTAGE))
+                .putLong("WINDMILL_PAUSE_MS", WINDMILL_PAUSE_MS)
+                .apply();
+    }
+
     void mecanumDrive(double forward, double strafe, double rotate) {
-        if (Math.abs(forward) < 0.1) {
+        // keep the dashboard value sane: junk like NaN falls back to the default 0.1,
+        // otherwise clamp it so a typo can't make the robot undrivable
+        double dz = DRIVE_DEADZONE;
+        if (Double.isNaN(dz) || Double.isInfinite(dz)) {
+            dz = 0.1;
+        }
+        dz = Math.max(0, Math.min(dz, 0.9));
+        if (Math.abs(forward) < dz) {
             forward = 0;
         }
-        if (Math.abs(strafe) < 0.1) {
+        if (Math.abs(strafe) < dz) {
             strafe = 0;
         }
-        if (Math.abs(rotate) < 0.1) {
+        if (Math.abs(rotate) < dz) {
             rotate = 0;
         }
         leftFrontPower = forward - strafe + rotate;
