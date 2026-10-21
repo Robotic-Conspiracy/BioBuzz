@@ -106,11 +106,21 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     // Create a variable to set to the intake.
     double intakePower;
 
+    // dpad drive toggles. both off is normal driving.
+    boolean driveInverted = false;      // dpad up: drive stays inverted
+    boolean intakeInvertsDrive = false; // dpad down: drive inverts while the intake runs
+    boolean dpadUpWasPressed = false;
+    boolean dpadDownWasPressed = false;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Override
     public void init() {
+
+        // drive-inversion toggles always start off
+        driveInverted = false;
+        intakeInvertsDrive = false;
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         /*
@@ -207,6 +217,10 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      */
     @Override
     public void start() {
+        // seed the toggle edge detection with the buttons' current state, so a dpad button
+        // already held at START doesn't count as a fresh press
+        dpadUpWasPressed = gamepad1.dpad_up;
+        dpadDownWasPressed = gamepad1.dpad_down;
     }
 
     /*
@@ -226,7 +240,32 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * Note, moving the joystick forward on most gamepads results in a negative signal, so
          * we invert it before passing it to the function.
          */
-        mecanumDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, gamepad1.right_stick_x);
+        // dpad up toggles always-inverted drive, dpad down toggles invert-while-intake.
+        // one mode can't be turned on while the other is on. only a fresh press counts,
+        // holding the button doesn't keep toggling.
+        boolean upPressed = gamepad1.dpad_up && !dpadUpWasPressed;
+        boolean downPressed = gamepad1.dpad_down && !dpadDownWasPressed;
+        dpadUpWasPressed = gamepad1.dpad_up;
+        dpadDownWasPressed = gamepad1.dpad_down;
+        if (upPressed && !downPressed && !intakeInvertsDrive) {
+            driveInverted = !driveInverted;
+        } else if (downPressed && !upPressed && !driveInverted) {
+            intakeInvertsDrive = !intakeInvertsDrive;
+        }
+
+        double forward = -gamepad1.left_stick_y;
+        double strafe = -gamepad1.left_stick_x;
+        double rotate = gamepad1.right_stick_x;
+
+        // the intake counts as active when the triggers actually command it (both pulled cancels out)
+        boolean intakeActive = Math.abs(gamepad1.right_trigger - gamepad1.left_trigger) > 0.05;
+        boolean driveFlipped = driveInverted || (intakeInvertsDrive && intakeActive);
+        if (driveFlipped) {
+            forward = -forward;
+            strafe = -strafe;
+        }
+
+        mecanumDrive(forward, strafe, rotate);
 
         /*
          * Set the intake power variable to equal the right trigger, minus the left trigger.
@@ -280,6 +319,10 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
                 leftFrontPower * 100, rightFrontPower * 100,
                 leftBackPower * 100, rightBackPower * 100,
                 DRIVE_POWER_SCALE * 100);
+        telemetry.addData("Drive modes", "inverted %s, intake-invert %s%s",
+                driveInverted ? "ON" : "off",
+                intakeInvertsDrive ? "ON" : "off",
+                driveFlipped ? " (flipped now)" : "");
         telemetry.addData("batteryV", voltageSensor.getVoltage());
         telemetry.update();
     }
