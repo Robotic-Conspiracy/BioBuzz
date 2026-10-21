@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import java.util.Random;
 
 @Autonomous
 @Config
@@ -20,10 +19,6 @@ public class PIDF_Tuning  extends OpMode {
     public static double F = 0;
     public static double targetSpeed = 2000;
     public static double switch_time = 10;
-    private Random random = new Random();
-
-    private int Switch = 0;
-
     private DcMotorEx launcher;
     private ElapsedTime time = new ElapsedTime();
     @Override
@@ -45,13 +40,6 @@ public class PIDF_Tuning  extends OpMode {
         telemetry.addData("F", F);
         if(time.seconds() >= switch_time){
             launcher.setVelocity(targetSpeed);
-//            if (Switch == 0) {
-//                launcher.setVelocity(-targetSpeed);
-//                Switch = 1;
-//            } else {
-//                launcher.setVelocity(targetSpeed);
-//                Switch = 0;
-//            }
             time.reset();
         }
         telemetry.update();

@@ -81,7 +81,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     public static int LAUNCHER_TARGET_VELOCITY = 1350; //2678 RPM*2
     public final int LAUNCHER_MIN_VELOCITY = 1200; //2571 RPM
     // Overall drive speed cap, 1.0 = full speed. Tune live from the dashboard.
-    public static double DRIVE_POWER_SCALE = 1.0;
+    public static double DRIVE_POWER_SCALE = 0.8;
 
     // Windmill continuous servo 180-degree increment tuning and state
     public static double WINDMILL_POWER = 1.0;
@@ -268,7 +268,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         telemetry.addData("launcherVel", launcherVel);
         telemetry.addData("launcherTarget", LAUNCHER_TARGET_VELOCITY);
         telemetry.addData("Intake", "%s, feeder %s",
-                intakeState, gamepad1.right_bumper ? "ON" : "off");
+                intakeState, windmillIsRotating ? "ON" : "off");
         // CRServos can't report position, only commanded power — shown as direction / state
         telemetry.addData("Servos", "feeder %s, intakes %s",
                 windmillIsRotating ? "rotating 180°" : (windmillIsPausing ? "pausing" : "off"), intakeServoDir);
