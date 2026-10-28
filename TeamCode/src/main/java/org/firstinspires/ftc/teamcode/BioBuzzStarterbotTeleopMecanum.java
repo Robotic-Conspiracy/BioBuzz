@@ -52,10 +52,6 @@
 /* ETHAN DONT CHANGE THE CONFIG CHUD */
 /* ETHAN DONT CHANGE THE CONFIG CHUD */
 
-
-
-
-
 package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior.BRAKE;
