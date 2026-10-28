@@ -484,10 +484,10 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         if (Math.abs(rotate) < dz) {
             rotate = 0;
         }
-        leftFrontPower = forward + strafe + rotate;
-        rightFrontPower = forward - strafe - rotate;
-        leftBackPower = forward - strafe + rotate;
-        rightBackPower = forward + strafe - rotate;
+        leftFrontPower = forward - strafe + rotate;
+        rightFrontPower = forward + strafe - rotate;
+        leftBackPower = forward + strafe + rotate;
+        rightBackPower = forward - strafe - rotate;
 
         double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
         max = Math.max(max, Math.abs(leftBackPower));
