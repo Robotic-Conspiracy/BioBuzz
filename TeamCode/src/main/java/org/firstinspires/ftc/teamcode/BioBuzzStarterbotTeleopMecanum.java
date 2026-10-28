@@ -401,7 +401,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
             });
             dash.addConfigVariable(cat, "NOMINAL_VOLTAGE", new ValueProvider<Double>() {
                 @Override public Double get() { return NOMINAL_VOLTAGE; }
-                @Override public void set(Double value) { NOMINAL_VOLTAGE = value; saveTuning(p); }
+                @Override public void set(Double value) { NOMINAL_VOLTAGE = inRangeOrDefault(value, 1, 24, DEF_NOMINAL_VOLTAGE); saveTuning(p); }
             });
             dash.addConfigVariable(cat, "WINDMILL_PAUSE_MS", new ValueProvider<Long>() {
                 @Override public Long get() { return WINDMILL_PAUSE_MS; }
@@ -431,6 +431,12 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         } catch (ClassCastException e) {
             // storage was messed with by hand - the code defaults are already in place
         }
+    }
+
+    // same bounds as restore: outside the range or not a real number, fall back to the code default
+    static double inRangeOrDefault(double v, double min, double max, double def) {
+        if (Double.isNaN(v) || Double.isInfinite(v) || v < min || v > max) return def;
+        return v;
     }
 
     static double restoreDouble(SharedPreferences p, String key, double def, double min, double max) {
