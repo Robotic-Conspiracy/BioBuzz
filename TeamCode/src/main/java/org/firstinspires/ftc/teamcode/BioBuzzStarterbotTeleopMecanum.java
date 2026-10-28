@@ -19,6 +19,42 @@
  *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  *   SOFTWARE.
  */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THIS CHUD */
+/* ETHAN DONT CHANGE THE CONFIG CHUD */
+/* ETHAN DONT CHANGE THE CONFIG CHUD */
+/* ETHAN DONT CHANGE THE CONFIG CHUD */
+/* ETHAN DONT CHANGE THE CONFIG CHUD */
+/* ETHAN DONT CHANGE THE CONFIG CHUD */
+/* ETHAN DONT CHANGE THE CONFIG CHUD */
+/* ETHAN DONT CHANGE THE CONFIG CHUD */
+/* ETHAN DONT CHANGE THE CONFIG CHUD */
+
+
+
+
 
 package org.firstinspires.ftc.teamcode;
 
@@ -91,7 +127,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private static final long DEF_WINDMILL_PAUSE_MS = 100;
 
     public static int LAUNCHER_TARGET_VELOCITY = DEF_LAUNCHER_TARGET_VELOCITY; // ~2625 RPM
-    public final int LAUNCHER_MIN_VELOCITY = 1200; //2571 RPM
+    public final int LAUNCHER_MIN_VELOCITY = 1200; //idk RPM
     // Overall drive speed cap, 1.0 = full speed. Tune live from the dashboard.
     public static double DRIVE_POWER_SCALE = DEF_DRIVE_POWER_SCALE;
 
@@ -484,9 +520,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         if (Math.abs(rotate) < dz) {
             rotate = 0;
         }
-        leftFrontPower = forward - strafe + rotate;
+        leftFrontPower = forward + strafe + rotate;
         rightFrontPower = forward + strafe - rotate;
-        leftBackPower = forward + strafe + rotate;
+        leftBackPower = forward - strafe + rotate;
         rightBackPower = forward - strafe - rotate;
 
         double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
