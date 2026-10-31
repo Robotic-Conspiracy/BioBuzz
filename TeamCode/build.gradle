@@ -56,6 +56,9 @@ dependencies {
     implementation ("com.acmerobotics.roadrunner:actions:1.0.1"){
         exclude group: "com.acmerobotics.dashboard"
     }
+
+    implementation 'com.pedropathing:revhub:3.0.2'
+    implementation 'com.pedropathing:tuning:1.0.0'
 //    implementation("dev.frozenmilk.sinister:Sloth:0.3.2")
 //    implementation("com.bylazar.sloth:fullpanels:0.3.2+1.0.13")
 
