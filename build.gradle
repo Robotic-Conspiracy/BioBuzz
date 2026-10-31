@@ -23,6 +23,10 @@ allprojects {
     repositories {
         mavenCentral()
         google()
+        maven { url 'https://maven.pedropathing.com' }
+        maven { url 'https://maven.brott.dev' }
+        maven { url 'https://repo.dairy.foundation/releases/' }
+        maven { url 'https://mymaven.bylazar.com/releases' }
     }
 }
 
