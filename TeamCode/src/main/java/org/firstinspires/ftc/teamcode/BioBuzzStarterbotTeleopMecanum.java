@@ -62,8 +62,12 @@ import android.content.SharedPreferences;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.ValueProvider;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.ftccommon.external.OnCreate;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -101,6 +105,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private CRServo rightIntakeServo = null;
     private CRServo windmillServo = null;
     private VoltageSensor voltageSensor = null;
+
+    private GoBildaPinpointDriver pinpoint = null;
 
 
     /*
@@ -167,6 +173,18 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      */
     @Override
     public void init() {
+
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        double FORWARD_OFFSET = 158.5;
+        double LATERAL_OFFSET = 110.5;
+
+        GoBildaPinpointDriver.GoBildaOdometryPods pods = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
+        GoBildaPinpointDriver.EncoderDirection forwardDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+        GoBildaPinpointDriver.EncoderDirection lateralDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+        pinpoint.setOffsets(FORWARD_OFFSET, LATERAL_OFFSET, DistanceUnit.MM);
+        pinpoint.setEncoderResolution(pods);
+        pinpoint.setEncoderDirections(forwardDirection, lateralDirection);
+        pinpoint.initialize();
 
         // bring back the drive mode from last time. anything weird in storage means normal.
         prefs = hardwareMap.appContext.getSharedPreferences("biobuzz", Context.MODE_PRIVATE);
@@ -299,6 +317,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         // dpad up toggles always-inverted drive, dpad down toggles invert-while-intake.
         // one mode can't be turned on while the other is on. only a fresh press counts,
         // holding the button doesn't keep toggling.
+
+        pinpoint.update();
+
         boolean upPressed = gamepad1.dpad_up && !dpadUpWasPressed;
         boolean downPressed = gamepad1.dpad_down && !dpadDownWasPressed;
         dpadUpWasPressed = gamepad1.dpad_up;
@@ -382,6 +403,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
                 driveMode == 2 ? "ON" : "off",
                 driveFlipped ? " (flipped now)" : "");
         telemetry.addData("batteryV", voltageSensor.getVoltage());
+        telemetry.addData("pos x", pinpoint.getPosX(DistanceUnit.MM));
+        telemetry.addData("pos y", pinpoint.getPosY(DistanceUnit.MM));
+        telemetry.addData("pos heading", pinpoint.getHeading(AngleUnit.DEGREES));
         telemetry.update();
     }
 
