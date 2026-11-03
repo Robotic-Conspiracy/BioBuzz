@@ -252,23 +252,23 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
 
-        /*
-         * set Feeders to an initial value to initialize the servo controller
-         */
-        leftIntakeServo.setPower(0);
-        rightIntakeServo.setPower(0);
-        windmillServo.setPower(0);
-
-        // Align windmill servo to 180 degrees at initialization (voltage compensated)
-        // CANT POWER ANY MOTORS OR SERVOS DURING INIT
-        long initRotationMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
-        windmillServo.setPower(WINDMILL_POWER);
-        try {
-            Thread.sleep(initRotationMs);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        windmillServo.setPower(0);
+//        /*
+//         * set Feeders to an initial value to initialize the servo controller
+//         */
+//        leftIntakeServo.setPower(0);
+//        rightIntakeServo.setPower(0);
+//        windmillServo.setPower(0);
+//
+//        // Align windmill servo to 180 degrees at initialization (voltage compensated)
+//        // CANT POWER ANY MOTORS OR SERVOS DURING INIT
+//        long initRotationMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
+//        windmillServo.setPower(WINDMILL_POWER);
+//        try {
+//            Thread.sleep(initRotationMs);
+//        } catch (InterruptedException e) {
+//            Thread.currentThread().interrupt();
+//        }
+//        windmillServo.setPower(0);
 
         // The right intake servo reverse is off for now, so both intake servos run the same way.
         // rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
