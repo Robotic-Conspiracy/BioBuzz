@@ -260,6 +260,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         windmillServo.setPower(0);
 
         // Align windmill servo to 180 degrees at initialization (voltage compensated)
+        // CANT POWER ANY MOTORS OR SERVOS DURING INIT
         long initRotationMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
         windmillServo.setPower(WINDMILL_POWER);
         try {
