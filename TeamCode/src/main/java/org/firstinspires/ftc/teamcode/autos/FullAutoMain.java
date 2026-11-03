@@ -202,7 +202,7 @@ public abstract class FullAutoMain extends OpMode {
     public void updateShoot(){
         launcher.setVelocity(1225);
         windmillServo.setPower(1);
-        if (shootTimer.seconds() >= 0.5){
+        if (shootTimer.seconds() >= 3){
             launcher.setVelocity(0);
             windmillServo.setPower(0);
             state = ActionStates.Parked;
@@ -214,7 +214,7 @@ public abstract class FullAutoMain extends OpMode {
         intake.setPower(1);
         leftIntakeServo.setPower(1);
         rightIntakeServo.setPower(1);
-        if (intakeTimer.seconds() >= 0.5){
+        if (intakeTimer.seconds() >= 3){
             intake.setPower(0);
             leftIntakeServo.setPower(0);
             rightIntakeServo.setPower(0);
