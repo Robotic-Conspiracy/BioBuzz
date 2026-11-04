@@ -99,6 +99,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private DcMotor intake = null;
     private CRServo windmillServo = null;
     private VoltageSensor voltageSensor = null;
+    private CRServo flowerintake = null;
 
 
     /*
