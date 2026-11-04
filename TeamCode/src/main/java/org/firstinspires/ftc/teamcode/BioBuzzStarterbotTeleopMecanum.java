@@ -62,12 +62,8 @@ import android.content.SharedPreferences;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.ValueProvider;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.ftccommon.external.OnCreate;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -101,12 +97,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private DcMotor rightBackDrive = null;
     private DcMotorEx launcher = null;
     private DcMotor intake = null;
-    private CRServo leftIntakeServo = null;
-    private CRServo rightIntakeServo = null;
     private CRServo windmillServo = null;
     private VoltageSensor voltageSensor = null;
-
-    private GoBildaPinpointDriver pinpoint = null;
+    private CRServo flowerintake = null;
 
 
     /*
@@ -174,18 +167,6 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     @Override
     public void init() {
 
-        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        double FORWARD_OFFSET = 158.5;
-        double LATERAL_OFFSET = 110.5;
-
-        GoBildaPinpointDriver.GoBildaOdometryPods pods = GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD;
-        GoBildaPinpointDriver.EncoderDirection forwardDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
-        GoBildaPinpointDriver.EncoderDirection lateralDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
-        pinpoint.setOffsets(FORWARD_OFFSET, LATERAL_OFFSET, DistanceUnit.MM);
-        pinpoint.setEncoderResolution(pods);
-        pinpoint.setEncoderDirections(forwardDirection, lateralDirection);
-        pinpoint.initialize();
-
         // bring back the drive mode from last time. anything weird in storage means normal.
         prefs = hardwareMap.appContext.getSharedPreferences("biobuzz", Context.MODE_PRIVATE);
         int savedMode;
@@ -210,8 +191,6 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         windmillServo = hardwareMap.get(CRServo.class, "windmillServo");
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
-        leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
-        rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
 
         /*
          * To drive forward, most robots need the motor on one side to be reversed,
@@ -252,23 +231,20 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
 
-//        /*
-//         * set Feeders to an initial value to initialize the servo controller
-//         */
-//        leftIntakeServo.setPower(0);
-//        rightIntakeServo.setPower(0);
-//        windmillServo.setPower(0);
-//
-//        // Align windmill servo to 180 degrees at initialization (voltage compensated)
-//        // CANT POWER ANY MOTORS OR SERVOS DURING INIT
-//        long initRotationMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
-//        windmillServo.setPower(WINDMILL_POWER);
-//        try {
-//            Thread.sleep(initRotationMs);
-//        } catch (InterruptedException e) {
-//            Thread.currentThread().interrupt();
-//        }
-//        windmillServo.setPower(0);
+        /*
+         * set Feeders to an initial value to initialize the servo controller
+         */
+        windmillServo.setPower(0);
+
+        // Align windmill servo to 180 degrees at initialization (voltage compensated)
+        long initRotationMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
+        windmillServo.setPower(WINDMILL_POWER);
+        try {
+            Thread.sleep(initRotationMs);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        windmillServo.setPower(0);
 
         // The right intake servo reverse is off for now, so both intake servos run the same way.
         // rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -318,9 +294,6 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         // dpad up toggles always-inverted drive, dpad down toggles invert-while-intake.
         // one mode can't be turned on while the other is on. only a fresh press counts,
         // holding the button doesn't keep toggling.
-
-        pinpoint.update();
-
         boolean upPressed = gamepad1.dpad_up && !dpadUpWasPressed;
         boolean downPressed = gamepad1.dpad_down && !dpadDownWasPressed;
         dpadUpWasPressed = gamepad1.dpad_up;
@@ -372,8 +345,6 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          */
 
         intake.setPower(intakePower);
-        leftIntakeServo.setPower(intakePower);
-        rightIntakeServo.setPower(intakePower);
 
         /*
          * Plain-language status for drivers and debugging.
@@ -404,9 +375,6 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
                 driveMode == 2 ? "ON" : "off",
                 driveFlipped ? " (flipped now)" : "");
         telemetry.addData("batteryV", voltageSensor.getVoltage());
-        telemetry.addData("pos x", pinpoint.getPosX(DistanceUnit.MM));
-        telemetry.addData("pos y", pinpoint.getPosY(DistanceUnit.MM));
-        telemetry.addData("pos heading", pinpoint.getHeading(AngleUnit.DEGREES));
         telemetry.update();
     }
 
