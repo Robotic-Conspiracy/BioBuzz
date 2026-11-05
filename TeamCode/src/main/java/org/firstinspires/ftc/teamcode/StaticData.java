@@ -29,8 +29,9 @@ public class StaticData {
     // intake stuff
     public static final String INTAKE_NAME = "intake";
     public static final String WINDMILL_SERVO_NAME = "windmillServo";
-    public static final String LEFT_INTAKE_SERVO_NAME = "left_intake_servo";
-    public static final String RIGHT_INTAKE_SERVO_NAME = "right_intake_servo";
+    public static final String FLOWER_INTAKE_SERVO_NAME = "flower_intake";
+//    public static final String LEFT_INTAKE_SERVO_NAME = "left_intake_servo";
+//    public static final String RIGHT_INTAKE_SERVO_NAME = "right_intake_servo";
     public static final DcMotorSimple.Direction INTAKE_DIRECTION = DcMotorSimple.Direction.REVERSE;
     public static final DcMotor.ZeroPowerBehavior INTAKE_ZERO_POWER_BEHAVIOR = DcMotor.ZeroPowerBehavior.BRAKE;
 
