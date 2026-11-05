@@ -12,12 +12,13 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.StaticData;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@Autonomous(name = "donrt run ", group = "Autonomous")
+
 @Configurable
 public abstract class FullAutoMain extends OpMode {
 
@@ -25,8 +26,9 @@ public abstract class FullAutoMain extends OpMode {
     private DcMotorEx launcher;
     private DcMotor intake;
     private CRServo windmillServo;
-    private CRServo leftIntakeServo;
-    private CRServo rightIntakeServo;
+//    private CRServo leftIntakeServo;
+//    private CRServo rightIntakeServo;
+    private Servo flowerIntake;
 
     // telemetry
     private TelemetryManager panelsTelemetry;
@@ -65,8 +67,8 @@ public abstract class FullAutoMain extends OpMode {
 
     private void init_intake(){
         intake = hardwareMap.get(DcMotor.class, StaticData.INTAKE_NAME);
-        leftIntakeServo = hardwareMap.get(CRServo.class, StaticData.LEFT_INTAKE_SERVO_NAME);
-        rightIntakeServo = hardwareMap.get(CRServo.class, StaticData.RIGHT_INTAKE_SERVO_NAME);
+        flowerIntake = hardwareMap.get(Servo.class, StaticData.FLOWER_INTAKE_SERVO_NAME);
+
 
         intake.setZeroPowerBehavior(StaticData.INTAKE_ZERO_POWER_BEHAVIOR);
     }
@@ -97,100 +99,26 @@ public abstract class FullAutoMain extends OpMode {
         switch (currentPath){
             case StartToShootPath:
                 follower.follow(StartToShootPath());
-                if(follower.atParametricEnd()){
-                    switch (state){
-                        case Shooting:
-                            updateShoot();
-                            break;
-                        case Moving:
-                            shootTimer.reset();
-                            state = ActionStates.Shooting;
-                            break;
-                        case Parked:
-                            state = ActionStates.Moving;
-                            currentPath = Paths.ShootToFlowerPath1;
-                            break;
-                    }
-                }
+                toShootUpdate();
                 break;
             case ShootToFlowerPath1:
                 follower.follow(ShootToFlowerPath1());
-                if(follower.remainingDistance() <= 10 || follower.atParametricEnd()){
-                    switch (state){
-                        case Intaking:
-                            updateIntake();
-                            break;
-                        case Moving:
-                            intakeTimer.reset();
-                            state = ActionStates.Intaking;
-                            break;
-                        case Parked:
-                            state = ActionStates.Moving;
-                            currentPath = Paths.FlowerToShootPath1;
-                            break;
-                    }
-                }
+                toFlowerUpdate();
                 break;
             case FlowerToShootPath1:
                 follower.follow(FlowerToShootPath1());
-                if(follower.atParametricEnd()){
-                    switch (state){
-                        case Shooting:
-                            updateShoot();
-                            break;
-                        case Moving:
-                            shootTimer.reset();
-                            state = ActionStates.Shooting;
-                            break;
-                        case Parked:
-                            state = ActionStates.Moving;
-                            currentPath = Paths.ShootToFlowerPath2;
-                            break;
-                    }
-                }
+                toShootUpdate();
                 break;
             case ShootToFlowerPath2:
                 follower.follow(ShootToFlowerPath2());
-                if(follower.remainingDistance() <= 10 || follower.atParametricEnd()){
-                    switch (state){
-                        case Intaking:
-                            updateIntake();
-                            break;
-                        case Moving:
-                            intakeTimer.reset();
-                            state = ActionStates.Intaking;
-                            break;
-                        case Parked:
-                            state = ActionStates.Moving;
-                            currentPath = Paths.FlowerToShootPath2;
-                            break;
-                    }
-                }
+                toFlowerUpdate();
                 break;
             case FlowerToShootPath2:
                 follower.follow(FlowerToShootPath2());
-                if(follower.atParametricEnd()){
-                    switch (state){
-                        case Shooting:
-                            updateShoot();
-                            break;
-                        case Moving:
-                            shootTimer.reset();
-                            state = ActionStates.Shooting;
-                            break;
-                        case Parked:
-                            state = ActionStates.Moving;
-                            currentPath = Paths.ShootToPark;
-                            break;
-                    }
-                }
+                toShootUpdate();
                 break;
             case ShootToPark:
                 follower.follow(ShootToPark());
-                if(follower.atParametricEnd()){
-                    state = ActionStates.Parked;
-                    currentPath = Paths.Done;
-                }
                 break;
             case Done:
                 break;
@@ -200,7 +128,7 @@ public abstract class FullAutoMain extends OpMode {
 
     // shooting
     public void updateShoot(){
-        launcher.setVelocity(1225);
+        launcher.setVelocity(1225);//around 2625 rpm   math: set_velocity * 60 / encoder_resolution(this is 28)
         windmillServo.setPower(1);
         if (shootTimer.seconds() >= 3){
             launcher.setVelocity(0);
@@ -212,25 +140,75 @@ public abstract class FullAutoMain extends OpMode {
     // intake
     public void updateIntake(){
         intake.setPower(1);
-        leftIntakeServo.setPower(1);
-        rightIntakeServo.setPower(1);
+
+        //TODO: find the start position and the active position for the flower intake servo
         if (intakeTimer.seconds() >= 3){
             intake.setPower(0);
-            leftIntakeServo.setPower(0);
-            rightIntakeServo.setPower(0);
+
             state = ActionStates.Parked;
+        }
+    }
+
+    public void toShootUpdate(){
+        if(follower.remainingDistance() <= 25 || follower.atParametricEnd()){
+            launcher.setVelocity(1225);
+        }
+
+        if(follower.atParametricEnd()){
+            switch (state){
+                case Shooting:
+                    updateShoot();
+                    break;
+                case Moving:
+                    shootTimer.reset();
+                    state = ActionStates.Shooting;
+                    break;
+                case Parked:
+                    state = ActionStates.Moving;
+                    currentPath = currentPath.getNextPath();
+                    break;
+            }
+        }
+    }
+
+    public void toFlowerUpdate(){
+
+        if(follower.remainingDistance() <= 25 || follower.atParametricEnd()){
+            switch (state){
+                case Intaking:
+                    updateIntake();
+                    break;
+                case Moving:
+                    intakeTimer.reset();
+                    state = ActionStates.Intaking;
+                    break;
+                case Parked:
+                    state = ActionStates.Moving;
+                    currentPath = currentPath.getNextPath();
+                    break;
+            }
         }
     }
 
     // enums
     private enum Paths{
-        StartToShootPath,
-        ShootToFlowerPath1,
-        FlowerToShootPath1,
-        ShootToFlowerPath2,
-        FlowerToShootPath2,
-        ShootToPark,
-        Done
+        StartToShootPath(0),
+        ShootToFlowerPath1(1),
+        FlowerToShootPath1(2),
+        ShootToFlowerPath2(3),
+        FlowerToShootPath2(4),
+        ShootToPark(5),
+        Done(6);
+
+        private int value;
+
+        private Paths(int value){
+            this.value = value;
+        }
+
+        public Paths getNextPath(){
+            return Paths.values()[this.value + 1];
+        }
     }
 
     private enum ActionStates{
