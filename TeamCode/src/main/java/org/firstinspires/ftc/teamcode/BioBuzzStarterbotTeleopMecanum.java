@@ -264,7 +264,10 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData("servo", flowerIntake.getPosition());
+        if (flowerIntake != null) {
+            telemetry.addData("flowerIntakePos", flowerIntake.getPosition());
+        }
+        telemetry.update();
     }
 
     /*
@@ -365,6 +368,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         // Numeric copies so the dashboard Graph view can plot them
         telemetry.addData("launcherVel", launcherVel);
         telemetry.addData("launcherTarget", LAUNCHER_TARGET_VELOCITY);
+        if (flowerIntake != null) {
+            telemetry.addData("flowerIntakePos", flowerIntake.getPosition());
+        }
         telemetry.addData("Intake", "%s, feeder %s",
                 intakeState, windmillIsRotating ? "ON" : "off");
         // CRServos can't report position, only commanded power — shown as direction / state
