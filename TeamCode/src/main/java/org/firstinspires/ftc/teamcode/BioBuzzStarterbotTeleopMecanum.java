@@ -69,6 +69,7 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 /*
@@ -99,7 +100,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private DcMotor intake = null;
     private CRServo windmillServo = null;
     private VoltageSensor voltageSensor = null;
-    private CRServo flowerintake = null;
+    private Servo flowerintake = null;
 
 
     /*
@@ -190,6 +191,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         windmillServo = hardwareMap.get(CRServo.class, "windmillServo");
+        flowerintake = hardwareMap.get(Servo.class, "flower_intake");
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         /*
@@ -234,17 +236,17 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         /*
          * set Feeders to an initial value to initialize the servo controller
          */
-        windmillServo.setPower(0);
-
-        // Align windmill servo to 180 degrees at initialization (voltage compensated)
-        long initRotationMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
-        windmillServo.setPower(WINDMILL_POWER);
-        try {
-            Thread.sleep(initRotationMs);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        windmillServo.setPower(0);
+//        windmillServo.setPower(0);
+//
+//        // Align windmill servo to 180 degrees at initialization (voltage compensated)
+//        long initRotationMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
+//        windmillServo.setPower(WINDMILL_POWER);
+//        try {
+//            Thread.sleep(initRotationMs);
+//        } catch (InterruptedException e) {
+//            Thread.currentThread().interrupt();
+//        }
+//        windmillServo.setPower(0);
 
         // The right intake servo reverse is off for now, so both intake servos run the same way.
         // rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -254,6 +256,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * Tell the driver that initialization is complete.
          */
         telemetry.addData("Status", "Initialized");
+
     }
 
     /*
@@ -261,6 +264,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      */
     @Override
     public void init_loop() {
+        telemetry.addData("servo", flowerintake.getPosition());
     }
 
     /*
@@ -537,39 +541,40 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     void launch() {
         // The launcher runs at target speed the whole teleop, bumper or not.
         launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+        windmillServo.setPower((gamepad1.right_bumper ? 1 : 0) - (gamepad1.left_bumper ? 1 : 0));
         /*
          * Moves the windmill continuous servo in 180-degree increments continuously while held.
          * Dynamically adjusts turn duration based on battery voltage to maintain consistent 180° rotation.
          * Whenever triggered, it completes a full 180° rotation before stopping or pausing.
          */
-        if (windmillIsRotating) {
-            long targetMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
-            if (System.currentTimeMillis() - windmillStartTime >= targetMs) {
-                windmillServo.setPower(0);
-                windmillIsRotating = false;
-                if (WINDMILL_PAUSE_MS > 0) {
-                    windmillIsPausing = true;
-                    windmillStartTime = System.currentTimeMillis();
-                }
-            }
-        } else if (windmillIsPausing) {
-            if (System.currentTimeMillis() - windmillStartTime >= WINDMILL_PAUSE_MS) {
-                windmillIsPausing = false;
-            }
-        } else {
-            // right bumper feeds forward, left bumper reverses. the launcher speed check is off for now.
-            if (gamepad1.right_bumper) { // && launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
-                windmillIsRotating = true;
-                windmillStartTime = System.currentTimeMillis();
-                windmillServo.setPower(WINDMILL_POWER);
-            } else if (gamepad1.left_bumper){
-                windmillIsRotating = true;
-                windmillStartTime = System.currentTimeMillis();
-                windmillServo.setPower(-WINDMILL_POWER);
-            } else {
-                windmillServo.setPower(0);
-            }
-        }
+//        if (windmillIsRotating) {
+//            long targetMs = getAdjustedRotationMs(WINDMILL_180_DEG_MS);
+//            if (System.currentTimeMillis() - windmillStartTime >= targetMs) {
+//                windmillServo.setPower(0);
+//                windmillIsRotating = false;
+//                if (WINDMILL_PAUSE_MS > 0) {
+//                    windmillIsPausing = true;
+//                    windmillStartTime = System.currentTimeMillis();
+//                }
+//            }
+//        } else if (windmillIsPausing) {
+//            if (System.currentTimeMillis() - windmillStartTime >= WINDMILL_PAUSE_MS) {
+//                windmillIsPausing = false;
+//            }
+//        } else {
+//            // right bumper feeds forward, left bumper reverses. the launcher speed check is off for now.
+//            if (gamepad1.right_bumper) { // && launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
+//                windmillIsRotating = true;
+//                windmillStartTime = System.currentTimeMillis();
+//                windmillServo.setPower(WINDMILL_POWER);
+//            } else if (gamepad1.left_bumper){
+//                windmillIsRotating = true;
+//                windmillStartTime = System.currentTimeMillis();
+//                windmillServo.setPower(-WINDMILL_POWER);
+//            } else {
+//                windmillServo.setPower(0);
+//            }
+//        }
     }
 
     /**
