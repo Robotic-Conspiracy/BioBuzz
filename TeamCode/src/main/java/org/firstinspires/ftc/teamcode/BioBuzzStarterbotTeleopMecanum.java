@@ -100,7 +100,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private DcMotor intake = null;
     private CRServo windmillServo = null;
     private VoltageSensor voltageSensor = null;
-    private Servo flowerintake = null;
+    private Servo flowerIntake = null;
 
 
     /*
@@ -191,7 +191,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         windmillServo = hardwareMap.get(CRServo.class, "windmillServo");
-        flowerintake = hardwareMap.get(Servo.class, "flower_intake");
+        flowerIntake = hardwareMap.get(Servo.class, "flower_intake");
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         /*
@@ -264,7 +264,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
      */
     @Override
     public void init_loop() {
-        telemetry.addData("servo", flowerintake.getPosition());
+        telemetry.addData("servo", flowerIntake.getPosition());
     }
 
     /*
