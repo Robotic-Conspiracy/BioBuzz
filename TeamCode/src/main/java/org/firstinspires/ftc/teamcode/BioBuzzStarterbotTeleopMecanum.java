@@ -121,6 +121,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private static final long DEF_WINDMILL_180_DEG_MS = 500;
     private static final double DEF_NOMINAL_VOLTAGE = 12.5;
     private static final long DEF_WINDMILL_PAUSE_MS = 100;
+    private static final double DEF_FLOWER_INTAKE_OPEN_POS = 1.0;
+    private static final double DEF_FLOWER_INTAKE_CLOSED_POS = 0.0;
 
     public static int LAUNCHER_TARGET_VELOCITY = DEF_LAUNCHER_TARGET_VELOCITY; // ~2625 RPM
     public final int LAUNCHER_MIN_VELOCITY = 1200; //idk RPM
@@ -136,6 +138,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     public static long WINDMILL_180_DEG_MS = DEF_WINDMILL_180_DEG_MS; // Milliseconds for 180-degree rotation at nominal voltage (12.5V)
     public static double NOMINAL_VOLTAGE = DEF_NOMINAL_VOLTAGE;  // Benchmark battery voltage for automatic time compensation
     public static long WINDMILL_PAUSE_MS = DEF_WINDMILL_PAUSE_MS;   // Milliseconds pause between continuous 180° increments
+    public static double FLOWER_INTAKE_OPEN_POS = DEF_FLOWER_INTAKE_OPEN_POS;
+    public static double FLOWER_INTAKE_CLOSED_POS = DEF_FLOWER_INTAKE_CLOSED_POS;
 
     private boolean windmillIsRotating = false;
     private boolean windmillIsPausing = false;
@@ -192,6 +196,9 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         windmillServo = hardwareMap.get(CRServo.class, "windmillServo");
         flowerIntake = hardwareMap.get(Servo.class, "flower_intake");
+        if (flowerIntake != null) {
+            flowerIntake.setPosition(FLOWER_INTAKE_CLOSED_POS);
+        }
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         /*
@@ -353,6 +360,16 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         intake.setPower(intakePower);
 
+        if (flowerIntake != null) {
+            if (gamepad1.x || intakeActive) {
+                flowerIntake.setPosition(FLOWER_INTAKE_OPEN_POS);
+            } else if (gamepad1.y || gamepad1.a) {
+                flowerIntake.setPosition(FLOWER_INTAKE_CLOSED_POS);
+            } else {
+                flowerIntake.setPosition(FLOWER_INTAKE_CLOSED_POS);
+            }
+        }
+
         /*
          * Plain-language status for drivers and debugging.
          */
@@ -442,6 +459,14 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
                 @Override public Long get() { return WINDMILL_PAUSE_MS; }
                 @Override public void set(Long value) { WINDMILL_PAUSE_MS = value; saveTuning(p); }
             });
+            dash.addConfigVariable(cat, "FLOWER_INTAKE_OPEN_POS", new ValueProvider<Double>() {
+                @Override public Double get() { return FLOWER_INTAKE_OPEN_POS; }
+                @Override public void set(Double value) { FLOWER_INTAKE_OPEN_POS = value; saveTuning(p); }
+            });
+            dash.addConfigVariable(cat, "FLOWER_INTAKE_CLOSED_POS", new ValueProvider<Double>() {
+                @Override public Double get() { return FLOWER_INTAKE_CLOSED_POS; }
+                @Override public void set(Double value) { FLOWER_INTAKE_CLOSED_POS = value; saveTuning(p); }
+            });
         } catch (Exception e) {
             // honest failure mode: if this throws, the tuning items DON'T show up on the
             // dashboard at all this run. The robot still drives with the restored/code
@@ -463,6 +488,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
             WINDMILL_180_DEG_MS = restoreLong(p, "WINDMILL_180_DEG_MS", DEF_WINDMILL_180_DEG_MS, 0, 10000);
             NOMINAL_VOLTAGE = restoreDouble(p, "NOMINAL_VOLTAGE", DEF_NOMINAL_VOLTAGE, 1, 24);
             WINDMILL_PAUSE_MS = restoreLong(p, "WINDMILL_PAUSE_MS", DEF_WINDMILL_PAUSE_MS, 0, 10000);
+            FLOWER_INTAKE_OPEN_POS = restoreDouble(p, "FLOWER_INTAKE_OPEN_POS", DEF_FLOWER_INTAKE_OPEN_POS, 0, 1);
+            FLOWER_INTAKE_CLOSED_POS = restoreDouble(p, "FLOWER_INTAKE_CLOSED_POS", DEF_FLOWER_INTAKE_CLOSED_POS, 0, 1);
         } catch (ClassCastException e) {
             // storage was messed with by hand - the code defaults are already in place
         }
@@ -499,6 +526,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
                 .putLong("WINDMILL_180_DEG_MS", WINDMILL_180_DEG_MS)
                 .putLong("NOMINAL_VOLTAGE", Double.doubleToRawLongBits(NOMINAL_VOLTAGE))
                 .putLong("WINDMILL_PAUSE_MS", WINDMILL_PAUSE_MS)
+                .putLong("FLOWER_INTAKE_OPEN_POS", Double.doubleToRawLongBits(FLOWER_INTAKE_OPEN_POS))
+                .putLong("FLOWER_INTAKE_CLOSED_POS", Double.doubleToRawLongBits(FLOWER_INTAKE_CLOSED_POS))
                 .apply();
     }
 
