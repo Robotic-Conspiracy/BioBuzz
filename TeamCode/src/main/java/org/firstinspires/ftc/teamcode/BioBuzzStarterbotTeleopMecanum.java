@@ -65,6 +65,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.ftccommon.external.OnCreate;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -101,6 +102,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private CRServo windmillServo = null;
     private VoltageSensor voltageSensor = null;
     private Servo flowerIntake = null;
+    private AnalogInput flowerIntakeAnalog = null;
 
 
     /*
@@ -191,7 +193,20 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         windmillServo = hardwareMap.get(CRServo.class, "windmillServo");
-        flowerIntake = hardwareMap.get(Servo.class, "flower_intake");
+        try {
+            flowerIntake = hardwareMap.get(Servo.class, "flower_intake");
+        } catch (Exception e) {
+            flowerIntake = null;
+        }
+        try {
+            flowerIntakeAnalog = hardwareMap.get(AnalogInput.class, "flower_intake");
+        } catch (Exception e) {
+            try {
+                flowerIntakeAnalog = hardwareMap.get(AnalogInput.class, "flower_intake_encoder");
+            } catch (Exception e2) {
+                flowerIntakeAnalog = null;
+            }
+        }
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         /*
@@ -259,14 +274,25 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
     }
 
+    private void updateFlowerIntakeTelemetry() {
+        if (flowerIntakeAnalog != null) {
+            double voltage = flowerIntakeAnalog.getVoltage();
+            double maxVoltage = flowerIntakeAnalog.getMaxVoltage();
+            double normalizedPos = maxVoltage > 0 ? voltage / maxVoltage : 0;
+            telemetry.addData("flowerIntakePos (Analog)", "%.3f (%.2fV)", normalizedPos, voltage);
+        } else if (flowerIntake != null) {
+            telemetry.addData("flowerIntakePos", "%.3f", flowerIntake.getPosition());
+        } else {
+            telemetry.addData("flowerIntakePos", "NOT CONFIGURED");
+        }
+    }
+
     /*
      * Code to run REPEATEDLY after the driver hits INIT, but before they hit START
      */
     @Override
     public void init_loop() {
-        if (flowerIntake != null) {
-            telemetry.addData("flowerIntakePos", flowerIntake.getPosition());
-        }
+        updateFlowerIntakeTelemetry();
         telemetry.update();
     }
 
@@ -368,9 +394,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         // Numeric copies so the dashboard Graph view can plot them
         telemetry.addData("launcherVel", launcherVel);
         telemetry.addData("launcherTarget", LAUNCHER_TARGET_VELOCITY);
-        if (flowerIntake != null) {
-            telemetry.addData("flowerIntakePos", flowerIntake.getPosition());
-        }
+        updateFlowerIntakeTelemetry();
         telemetry.addData("Intake", "%s, feeder %s",
                 intakeState, windmillIsRotating ? "ON" : "off");
         // CRServos can't report position, only commanded power — shown as direction / state
