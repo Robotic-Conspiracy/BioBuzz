@@ -8,9 +8,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 public class StaticData {
     // launcher stuff
     public static final int LAUNCHER_MIN_VELOCITY = 1200;
-    public static final double P = 0;
-    public static final double I = 0;
-    public static final double D = 0;
+    public static final double P = 600;
+    public static final double I = 1.3;
+    public static final double D = 1.5;
     public static final double F = 0;
     public static final String LAUNCHER_NAME = "launcher";
     public static final DcMotor.RunMode LAUNCHER_RUN_MODE = DcMotor.RunMode.RUN_USING_ENCODER;
@@ -48,6 +48,9 @@ public class StaticData {
 
     // stuff to be used between files
     public static Pose currentPose;
+
+    public static final double extendedPosition = 0;
+    public static final double foldedPosition = 0.6;
 
 
 }

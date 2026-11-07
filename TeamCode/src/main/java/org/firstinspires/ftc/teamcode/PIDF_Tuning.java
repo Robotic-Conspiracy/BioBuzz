@@ -4,6 +4,8 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -11,7 +13,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 @Autonomous
-@Config
+@Configurable
 public class PIDF_Tuning  extends OpMode {
     public static double P = 0;
     public static double I = 0;
@@ -21,8 +23,11 @@ public class PIDF_Tuning  extends OpMode {
     public static double switch_time = 10;
     private DcMotorEx launcher;
     private ElapsedTime time = new ElapsedTime();
+    private TelemetryManager panelsTelemetry;
+
     @Override
     public void init() {
+        panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
         time.reset();
@@ -42,6 +47,6 @@ public class PIDF_Tuning  extends OpMode {
             launcher.setVelocity(targetSpeed);
             time.reset();
         }
-        telemetry.update();
+        panelsTelemetry.update(telemetry);
     }
 }

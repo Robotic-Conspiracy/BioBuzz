@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.pedro;
 
+import com.pedropathing.algorithm.Foresight;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
 import com.pedropathing.revhub.localizers.PinpointConfig;
+import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.pedropathing.tuning.autotune.Procedure;
 import com.pedropathing.tuning.autotune.Tuner;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
@@ -39,8 +41,15 @@ public class Constants {
     public static Procedure tests() {
         return new Tests(hardwareMap -> new Mecanum(hardwareMap, Constants.drivetrainConfig), null, null);
     }
-
-    public static Follower create(HardwareMap h){
+    public static Follower create(HardwareMap h) {
         return null;
     }
+
+//    public static Follower create(HardwareMap h) {
+//        return new Follower(
+//                new PinpointLocalizer(h, localizerConfig),
+//                new Mecanum(h, drivetrainConfig),
+//                new Foresight(foresightConfig)
+//        );
+//    }
 }
