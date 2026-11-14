@@ -60,6 +60,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.config.ValueProvider;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -88,6 +89,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
  * we will also need to adjust the "PIDF" coefficients with some that are a better fit for our application.
  */
 
+@Config
 @TeleOp(name = "Mec BioBuzz StarterBot Teleop", group = "StarterBot")
 //@Disabled
 public class BioBuzzStarterbotTeleopMecanum extends OpMode {
@@ -118,14 +120,17 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     // code defaults for the dashboard tuning, so we can tell a fresh default from a dashboard edit
     private static final double DEF_DRIVE_POWER_SCALE = 1.0;
     private static final double DEF_DRIVE_DEADZONE = 0.1;
-    private static final int DEF_LAUNCHER_TARGET_VELOCITY = 700;
+    private static final int DEF_LAUNCHER_TARGET_VELOCITY = 550;
+    private static final double DEF_LAUNCHER_POWER = 0.5;
     private static final double DEF_WINDMILL_POWER = 1.0;
     private static final long DEF_WINDMILL_180_DEG_MS = 500;
     private static final double DEF_NOMINAL_VOLTAGE = 12.5;
     private static final long DEF_WINDMILL_PAUSE_MS = 100;
 
-    public static int LAUNCHER_TARGET_VELOCITY = DEF_LAUNCHER_TARGET_VELOCITY; // ~2625 RPM
-    public final int LAUNCHER_MIN_VELOCITY = 1200; //idk RPM
+    public static int LAUNCHER_TARGET_VELOCITY = DEF_LAUNCHER_TARGET_VELOCITY; // ~1312 RPM (half velocity)
+    public static double LAUNCHER_POWER = DEF_LAUNCHER_POWER; // 0.5 = 50% power (half power)
+    public static boolean USE_VELOCITY_CONTROL = true; // Set false to use direct 50% power
+    public final int LAUNCHER_MIN_VELOCITY = 500; //idk RPM
     // Overall drive speed cap, 1.0 = full speed. Tune live from the dashboard.
     public static double DRIVE_POWER_SCALE = DEF_DRIVE_POWER_SCALE;
 
@@ -172,6 +177,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         // bring back the drive mode from last time. anything weird in storage means normal.
         prefs = hardwareMap.appContext.getSharedPreferences("biobuzz", Context.MODE_PRIVATE);
+        restoreTuning(prefs);
         int savedMode;
         try {
             savedMode = prefs.getInt("driveMode", 0);
@@ -244,10 +250,12 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * through any wiring.
          */
 
-        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-//        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(StaticData.P, StaticData.I, StaticData.D, StaticData.F));
+        if (USE_VELOCITY_CONTROL) {
+            launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
+        } else {
+            launcher.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
 
         /*
          * set Feeders to an initial value to initialize the servo controller
@@ -402,16 +410,19 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          * Plain-language status for drivers and debugging.
          */
         double launcherVel = launcher.getVelocity();
-        boolean launcherReady = launcherVel > LAUNCHER_MIN_VELOCITY;
+        double launcherPower = launcher.getPower();
+        boolean launcherReady = USE_VELOCITY_CONTROL ? (launcherVel > LAUNCHER_MIN_VELOCITY) : (launcherPower > 0.05);
         String intakeState = intakePower > 0.05 ? "intaking"
                 : (intakePower < -0.05 ? "reversing" : "off");
         String intakeServoDir = intakePower > 0.05 ? "fwd"
                 : (intakePower < -0.05 ? "rev" : "off");
-        telemetry.addData("Launcher", "%s (goal %d, speed %.0f)",
+        telemetry.addData("Launcher", "%s | mode: %s | pwr: %.2f | vel: %.0f (target %d)",
                 launcherReady ? "READY" : "spinning up",
-                LAUNCHER_TARGET_VELOCITY, launcherVel);
+                USE_VELOCITY_CONTROL ? "VELOCITY" : "POWER",
+                launcherPower, launcherVel, LAUNCHER_TARGET_VELOCITY);
         // Numeric copies so the dashboard Graph view can plot them
         telemetry.addData("launcherVel", launcherVel);
+        telemetry.addData("launcherPower", launcherPower);
         telemetry.addData("launcherTarget", LAUNCHER_TARGET_VELOCITY);
         updateFlowerIntakeTelemetry();
         telemetry.addData("Intake", "%s, feeder %s",
@@ -469,6 +480,14 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
                 @Override public Integer get() { return LAUNCHER_TARGET_VELOCITY; }
                 @Override public void set(Integer value) { LAUNCHER_TARGET_VELOCITY = value; saveTuning(p); }
             });
+            dash.addConfigVariable(cat, "LAUNCHER_POWER", new ValueProvider<Double>() {
+                @Override public Double get() { return LAUNCHER_POWER; }
+                @Override public void set(Double value) { LAUNCHER_POWER = value; saveTuning(p); }
+            });
+            dash.addConfigVariable(cat, "USE_VELOCITY_CONTROL", new ValueProvider<Boolean>() {
+                @Override public Boolean get() { return USE_VELOCITY_CONTROL; }
+                @Override public void set(Boolean value) { USE_VELOCITY_CONTROL = value; }
+            });
             dash.addConfigVariable(cat, "WINDMILL_POWER", new ValueProvider<Double>() {
                 @Override public Double get() { return WINDMILL_POWER; }
                 @Override public void set(Double value) { WINDMILL_POWER = value; saveTuning(p); }
@@ -501,7 +520,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         try {
             DRIVE_POWER_SCALE = restoreDouble(p, "DRIVE_POWER_SCALE", DEF_DRIVE_POWER_SCALE, 0, 1);
             DRIVE_DEADZONE = restoreDouble(p, "DRIVE_DEADZONE", DEF_DRIVE_DEADZONE, 0, 0.9);
-            LAUNCHER_TARGET_VELOCITY = restoreInt(p, "LAUNCHER_TARGET_VELOCITY", DEF_LAUNCHER_TARGET_VELOCITY, 1, 6000);
+            LAUNCHER_TARGET_VELOCITY = DEF_LAUNCHER_TARGET_VELOCITY;
+            LAUNCHER_POWER = restoreDouble(p, "LAUNCHER_POWER", DEF_LAUNCHER_POWER, 0, 1);
             WINDMILL_POWER = restoreDouble(p, "WINDMILL_POWER", DEF_WINDMILL_POWER, -1, 1);
             WINDMILL_180_DEG_MS = restoreLong(p, "WINDMILL_180_DEG_MS", DEF_WINDMILL_180_DEG_MS, 0, 10000);
             NOMINAL_VOLTAGE = restoreDouble(p, "NOMINAL_VOLTAGE", DEF_NOMINAL_VOLTAGE, 1, 24);
@@ -588,8 +608,13 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     }
 
     void launch() {
-        // The launcher runs at target speed the whole teleop, bumper or not.
-        launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+        if (USE_VELOCITY_CONTROL) {
+            launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+        } else {
+            launcher.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            launcher.setPower(LAUNCHER_POWER);
+        }
         windmillServo.setPower((gamepad1.right_bumper ? 1 : 0) - (gamepad1.left_bumper ? 1 : 0));
         /*
          * Moves the windmill continuous servo in 180-degree increments continuously while held.
