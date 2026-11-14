@@ -246,7 +246,8 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
+//        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
+        launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(StaticData.P, StaticData.I, StaticData.D, StaticData.F));
 
         /*
          * set Feeders to an initial value to initialize the servo controller
@@ -338,6 +339,19 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
             if (driveMode == 2) setDriveMode(0);      // own button turns it off
             else if (driveMode == 0) setDriveMode(2); // only turns on from normal
         }
+        if(gamepad1.yWasReleased()){
+            switch (driveMode) {
+                case 0:
+                    driveMode = 1;
+                    break;
+                case 1:
+                    driveMode = 2;
+                    break;
+                case 2:
+                    driveMode = 0;
+                    break;
+            }
+        }
 
         double forward = -gamepad1.left_stick_y;
         double strafe = -gamepad1.left_stick_x;
@@ -378,6 +392,11 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
          */
 
         intake.setPower(intakePower);
+        if(gamepad1.a){
+            flowerIntake.setPosition(StaticData.extendedPosition);
+        } else {
+            flowerIntake.setPosition(StaticData.foldedPosition);
+        }
 
         /*
          * Plain-language status for drivers and debugging.
