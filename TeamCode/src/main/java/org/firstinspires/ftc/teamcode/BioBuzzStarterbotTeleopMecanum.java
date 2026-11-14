@@ -118,7 +118,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     // code defaults for the dashboard tuning, so we can tell a fresh default from a dashboard edit
     private static final double DEF_DRIVE_POWER_SCALE = 1.0;
     private static final double DEF_DRIVE_DEADZONE = 0.1;
-    private static final int DEF_LAUNCHER_TARGET_VELOCITY = 1225;
+    private static final int DEF_LAUNCHER_TARGET_VELOCITY = 700;
     private static final double DEF_WINDMILL_POWER = 1.0;
     private static final long DEF_WINDMILL_180_DEG_MS = 500;
     private static final double DEF_NOMINAL_VOLTAGE = 12.5;
