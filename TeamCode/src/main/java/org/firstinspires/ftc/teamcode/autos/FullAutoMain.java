@@ -128,7 +128,7 @@ public abstract class FullAutoMain extends OpMode {
 
     // shooting
     public void updateShoot(){
-        launcher.setVelocity(1225);//around 2625 rpm   math: set_velocity * 60 / encoder_resolution(this is 28)
+        launcher.setVelocity(2450);//around 2625 rpm   math: set_velocity * 60 / encoder_resolution(this is 28)
         windmillServo.setPower(0.33);
         if (shootTimer.seconds() >= 3){
             launcher.setVelocity(0);
@@ -151,7 +151,7 @@ public abstract class FullAutoMain extends OpMode {
 
     public void toShootUpdate(){
         if(follower.remainingDistance() <= 25 || follower.atParametricEnd()){
-            launcher.setVelocity(1225);
+            launcher.setVelocity(2450);
         }
 
         if(follower.atParametricEnd()){
