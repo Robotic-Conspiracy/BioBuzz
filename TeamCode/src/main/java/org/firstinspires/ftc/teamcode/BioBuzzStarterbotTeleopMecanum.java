@@ -177,7 +177,6 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
 
         // bring back the drive mode from last time. anything weird in storage means normal.
         prefs = hardwareMap.appContext.getSharedPreferences("biobuzz", Context.MODE_PRIVATE);
-        restoreTuning(prefs);
         int savedMode;
         try {
             savedMode = prefs.getInt("driveMode", 0);
@@ -520,7 +519,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
         try {
             DRIVE_POWER_SCALE = restoreDouble(p, "DRIVE_POWER_SCALE", DEF_DRIVE_POWER_SCALE, 0, 1);
             DRIVE_DEADZONE = restoreDouble(p, "DRIVE_DEADZONE", DEF_DRIVE_DEADZONE, 0, 0.9);
-            LAUNCHER_TARGET_VELOCITY = DEF_LAUNCHER_TARGET_VELOCITY;
+            LAUNCHER_TARGET_VELOCITY = restoreInt(p, "LAUNCHER_TARGET_VELOCITY", DEF_LAUNCHER_TARGET_VELOCITY, 0, 3000);
             LAUNCHER_POWER = restoreDouble(p, "LAUNCHER_POWER", DEF_LAUNCHER_POWER, 0, 1);
             WINDMILL_POWER = restoreDouble(p, "WINDMILL_POWER", DEF_WINDMILL_POWER, -1, 1);
             WINDMILL_180_DEG_MS = restoreLong(p, "WINDMILL_180_DEG_MS", DEF_WINDMILL_180_DEG_MS, 0, 10000);
@@ -558,6 +557,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
                 .putLong("DRIVE_POWER_SCALE", Double.doubleToRawLongBits(DRIVE_POWER_SCALE))
                 .putLong("DRIVE_DEADZONE", Double.doubleToRawLongBits(DRIVE_DEADZONE))
                 .putInt("LAUNCHER_TARGET_VELOCITY", LAUNCHER_TARGET_VELOCITY)
+                .putLong("LAUNCHER_POWER", Double.doubleToRawLongBits(LAUNCHER_POWER))
                 .putLong("WINDMILL_POWER", Double.doubleToRawLongBits(WINDMILL_POWER))
                 .putLong("WINDMILL_180_DEG_MS", WINDMILL_180_DEG_MS)
                 .putLong("NOMINAL_VOLTAGE", Double.doubleToRawLongBits(NOMINAL_VOLTAGE))
