@@ -122,7 +122,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
     private static final double DEF_DRIVE_DEADZONE = 0.1;
     private static final int DEF_LAUNCHER_TARGET_VELOCITY = 612;
     private static final double DEF_LAUNCHER_POWER = 0.5;
-    private static final double DEF_WINDMILL_POWER = 1.0;
+    private static final double DEF_WINDMILL_POWER = 0.33;
     private static final long DEF_WINDMILL_180_DEG_MS = 500;
     private static final double DEF_NOMINAL_VOLTAGE = 12.5;
     private static final long DEF_WINDMILL_PAUSE_MS = 100;
@@ -615,7 +615,7 @@ public class BioBuzzStarterbotTeleopMecanum extends OpMode {
             launcher.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             launcher.setPower(LAUNCHER_POWER);
         }
-        windmillServo.setPower((gamepad1.right_bumper ? 1 : 0) - (gamepad1.left_bumper ? 1 : 0));
+        windmillServo.setPower((gamepad1.right_bumper ? 0.33 : 0) - (gamepad1.left_bumper ? 0.33 : 0));
         /*
          * Moves the windmill continuous servo in 180-degree increments continuously while held.
          * Dynamically adjusts turn duration based on battery voltage to maintain consistent 180° rotation.

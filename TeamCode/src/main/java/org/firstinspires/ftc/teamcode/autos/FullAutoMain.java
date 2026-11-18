@@ -129,7 +129,7 @@ public abstract class FullAutoMain extends OpMode {
     // shooting
     public void updateShoot(){
         launcher.setVelocity(612);//around 2625 rpm   math: set_velocity * 60 / encoder_resolution(this is 28)
-        windmillServo.setPower(1);
+        windmillServo.setPower(0.33);
         if (shootTimer.seconds() >= 3){
             launcher.setVelocity(0);
             windmillServo.setPower(0);
